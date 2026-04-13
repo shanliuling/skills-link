@@ -1,10 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * skills-sync.js - CLI 入口
- *
- */
-
 import { program } from 'commander'
 import { runSetup } from '../src/commands/setup.js'
 import { runImport } from '../src/commands/import.js'
@@ -18,8 +13,9 @@ import { runList } from '../src/commands/list.js'
 import { runInit } from '../src/commands/init.js'
 import { runClone } from '../src/commands/clone.js'
 import { runStart } from '../src/commands/start.js'
+import { initI18n, getLocalePriority, t } from '../src/core/i18n.js'
+import { readConfig } from '../src/core/config.js'
 
-// 读取版本号
 import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
@@ -30,86 +26,84 @@ const pkg = JSON.parse(
   readFileSync(join(__dirname, '../package.json'), 'utf-8'),
 )
 
-// 配置 CLI
+function parseLangArg() {
+  const args = process.argv.slice(2)
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--lang' && args[i + 1]) {
+      return args[i + 1]
+    }
+    if (args[i].startsWith('--lang=')) {
+      return args[i].split('=')[1]
+    }
+  }
+  return null
+}
+
+function initLanguage() {
+  const cliLang = parseLangArg()
+  const config = readConfig()
+  const configLang = config?.language || null
+  const locale = getLocalePriority(cliLang, configLang)
+  initI18n(locale)
+}
+
+initLanguage()
+
 program
   .name('skills-sync')
-  .description('在多个 AI 应用之间同步本地 skills 文件夹')
+  .description(t('cli.description'))
   .version(pkg.version)
+  .option('--lang <lang>', t('cli.langOption'), 'en')
 
-// setup 命令
-program
-  .command('setup')
-  .description('初始化配置，创建 master 目录和 config.yaml')
-  .action(runSetup)
+program.command('setup').description(t('cli.commands.setup')).action(runSetup)
 
-// import 命令
 program
   .command('import')
-  .description('扫描电脑上已有的 skills，导入到 master 目录')
-  .option('-y, --yes', '跳过所有确认，自动选择最新版本')
+  .description(t('cli.commands.import'))
+  .option('-y, --yes', t('cli.options.skipConfirm'))
   .action((options) => runImport(options))
 
-// link 命令
 program
   .command('link')
-  .description('为启用的应用创建 Junction symlink')
-  .option('-a, --app <name>', '只为指定应用创建链接')
-  .option('-d, --dry-run', '预览操作，不实际执行')
+  .description(t('cli.commands.link'))
+  .option('-a, --app <name>', t('cli.options.app'))
+  .option('-d, --dry-run', t('cli.options.dryRun'))
   .action((options) => runLink(options))
 
-// sync 命令
 program
   .command('sync')
-  .description('手动触发 Git 同步')
-  .option('-m, --message <message>', '自定义 commit message')
+  .description(t('cli.commands.sync'))
+  .option('-m, --message <message>', t('cli.options.message'))
   .action((options) => runSync(options))
 
-// watch 命令
-program
-  .command('watch')
-  .description('启动文件监听，自动同步变更')
-  .action(runWatch)
+program.command('watch').description(t('cli.commands.watch')).action(runWatch)
 
-// health 命令
 program
   .command('health')
-  .description('检查所有 symlink 状态，输出健康报告')
+  .description(t('cli.commands.health'))
   .action(runHealth)
 
-// rollback 命令
 program
   .command('rollback')
-  .description('回滚到历史版本（需要启用 Git）')
+  .description(t('cli.commands.rollback'))
   .action(runRollback)
 
-// list 命令
-program
-  .command('list')
-  .description('列出电脑上用户自行下载的 skills')
-  .action(runList)
+program.command('list').description(t('cli.commands.list')).action(runList)
 
-// init 命令
-program
-  .command('init')
-  .description('一键初始化：setup + import + link')
-  .action(runInit)
+program.command('init').description(t('cli.commands.init')).action(runInit)
 
-// clone 命令
 program
   .command('clone [repo]')
-  .description('从 GitHub 克隆 skills 仓库并创建链接')
+  .description(t('cli.commands.clone'))
   .action((repo) => runClone({ repo }))
 
-// app 命令
 program
   .command('app [subcommand]')
-  .description('应用管理 (add / list)')
+  .description(t('cli.commands.app'))
   .action((subcommand) => runApp(subcommand || 'list'))
 
-// 默认命令：无参数时运行自动引导
 if (process.argv.length === 2) {
   runStart()
 } else {
-  // 解析参数
   program.parse()
 }

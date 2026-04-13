@@ -10,17 +10,13 @@ import os from 'os'
 import yaml from 'js-yaml'
 import { logger } from './logger.js'
 
-// 配置文件名
 const CONFIG_FILENAME = 'config.yaml'
 
-/**
- * 获取默认配置
- * @returns {Object} 默认配置对象
- */
 export function getDefaultConfig() {
   const username = os.userInfo().username
   return {
     masterDir: `C:/Users/${username}/AISkills`,
+    language: 'en',
     git: {
       enabled: false,
       remote: '',
@@ -50,29 +46,14 @@ export function getDefaultConfig() {
   }
 }
 
-/**
- * 获取配置文件路径
- * @param {string} cwd - 当前工作目录
- * @returns {string} 配置文件完整路径
- */
 export function getConfigPath(cwd = process.cwd()) {
   return path.join(cwd, CONFIG_FILENAME)
 }
 
-/**
- * 检查配置文件是否存在
- * @param {string} cwd - 当前工作目录
- * @returns {boolean} 是否存在
- */
 export function configExists(cwd = process.cwd()) {
   return fs.existsSync(getConfigPath(cwd))
 }
 
-/**
- * 读取配置文件
- * @param {string} cwd - 当前工作目录
- * @returns {Object|null} 配置对象，不存在则返回 null
- */
 export function readConfig(cwd = process.cwd()) {
   const configPath = getConfigPath(cwd)
 
@@ -89,12 +70,6 @@ export function readConfig(cwd = process.cwd()) {
   }
 }
 
-/**
- * 写入配置文件
- * @param {Object} config - 配置对象
- * @param {string} cwd - 当前工作目录
- * @returns {boolean} 是否成功
- */
 export function writeConfig(config, cwd = process.cwd()) {
   const configPath = getConfigPath(cwd)
 
@@ -114,11 +89,6 @@ export function writeConfig(config, cwd = process.cwd()) {
   }
 }
 
-/**
- * 验证配置文件完整性
- * @param {Object} config - 配置对象
- * @returns {{ valid: boolean, errors: string[] }} 验证结果
- */
 export function validateConfig(config) {
   const errors = []
 
@@ -154,11 +124,6 @@ export function validateConfig(config) {
   }
 }
 
-/**
- * 确保配置文件存在，不存在则提示错误
- * @param {string} cwd - 当前工作目录
- * @returns {{ exists: boolean, config: Object|null }} 结果
- */
 export function ensureConfig(cwd = process.cwd()) {
   const config = readConfig(cwd)
 
@@ -178,22 +143,11 @@ export function ensureConfig(cwd = process.cwd()) {
   return { exists: true, config }
 }
 
-/**
- * 获取启用状态的应用列表
- * @param {Object} config - 配置对象
- * @returns {Array} 启用的应用列表
- */
 export function getEnabledApps(config) {
   if (!config || !config.apps) return []
   return config.apps.filter((app) => app.enabled !== false)
 }
 
-/**
- * 根据名称查找应用
- * @param {Object} config - 配置对象
- * @param {string} name - 应用名称
- * @returns {Object|null} 应用对象
- */
 export function findAppByName(config, name) {
   if (!config || !config.apps) return null
   return config.apps.find(
@@ -201,25 +155,12 @@ export function findAppByName(config, name) {
   )
 }
 
-/**
- * 添加应用到配置
- * @param {Object} config - 配置对象
- * @param {Object} app - 应用对象 { name, skillsPath, enabled }
- * @returns {Object} 更新后的配置
- */
 export function addApp(config, app) {
   const newConfig = { ...config }
   newConfig.apps = [...(newConfig.apps || []), app]
   return newConfig
 }
 
-/**
- * 更新配置中的应用
- * @param {Object} config - 配置对象
- * @param {string} name - 应用名称
- * @param {Object} updates - 更新内容
- * @returns {Object} 更新后的配置
- */
 export function updateApp(config, name, updates) {
   const newConfig = { ...config }
   newConfig.apps = newConfig.apps.map((app) =>

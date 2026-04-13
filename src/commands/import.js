@@ -12,12 +12,8 @@ import inquirer from 'inquirer'
 import { logger } from '../core/logger.js'
 import { ensureConfig } from '../core/config.js'
 import { scanSkills, copySkill } from '../core/scanner.js'
+import { t } from '../core/i18n.js'
 
-/**
- * 获取 skill 的修改时间
- * @param {string} skillPath - skill 路径
- * @returns {Date} 修改时间
- */
 function getSkillModTime(skillPath) {
   try {
     const skillFile = path.join(skillPath, 'SKILL.md')
@@ -32,11 +28,6 @@ function getSkillModTime(skillPath) {
   }
 }
 
-/**
- * 按名称分组 skills，同名时选择最新版本
- * @param {Array} skills - skills 列表
- * @returns {Object} 分组后的 skills { name: [skill1, skill2, ...] }
- */
 function groupSkillsByName(skills) {
   const groups = {}
   for (const skill of skills) {
@@ -48,11 +39,6 @@ function groupSkillsByName(skills) {
   return groups
 }
 
-/**
- * 从同名 skills 中选择最新版本
- * @param {Array} skills - 同名的 skills 列表
- * @returns {Object} 最新的 skill
- */
 function selectLatestSkill(skills) {
   return skills.reduce((latest, current) => {
     const latestTime = getSkillModTime(latest.path)
@@ -61,11 +47,6 @@ function selectLatestSkill(skills) {
   })
 }
 
-/**
- * 格式化时间显示
- * @param {Date} date - 日期
- * @returns {string} 格式化后的时间
- */
 function formatTime(date) {
   return date.toLocaleString('zh-CN', {
     year: 'numeric',
@@ -76,97 +57,83 @@ function formatTime(date) {
   })
 }
 
-/**
- * 运行 import 命令
- * @param {Object} options - 命令选项
- * @param {boolean} options.yes - 跳过所有确认
- */
 export async function runImport(options = {}) {
   const { yes = false } = options
 
-  // 检查配置
   const { exists, config } = ensureConfig()
   if (!exists) return
 
-  // 自动创建 master 目录（如果不存在）
   if (!fs.existsSync(config.masterDir)) {
     if (yes) {
       fs.mkdirSync(config.masterDir, { recursive: true })
-      logger.success(`已创建 Master 目录: ${config.masterDir}`)
+      logger.success(t('import.masterDirCreated', { path: config.masterDir }))
     } else {
       const { create } = await inquirer.prompt([
         {
           type: 'confirm',
           name: 'create',
-          message: `Master 目录不存在，是否创建？`,
+          message: t('import.masterDirNotExist'),
           default: true,
         },
       ])
       if (create) {
         fs.mkdirSync(config.masterDir, { recursive: true })
-        logger.success(`已创建 Master 目录: ${config.masterDir}`)
+        logger.success(t('import.masterDirCreated', { path: config.masterDir }))
       } else {
         return
       }
     }
   }
 
-  logger.title('扫描现有 Skills')
+  logger.title(t('import.title'))
   logger.newline()
 
-  // 扫描 skills
   const skills = await scanSkills()
 
   if (skills.length === 0) {
-    logger.warn('未找到任何 skills')
-    logger.hint('Skills 是包含 SKILL.md 文件的目录')
+    logger.warn(t('import.noSkillsFound'))
+    logger.hint(t('import.skillsHint'))
     return
   }
 
-  // 按名称分组
   const groups = groupSkillsByName(skills)
   const duplicateNames = Object.keys(groups).filter(
     (name) => groups[name].length > 1,
   )
 
-  // 自动选择最新版本
   let finalSkills = []
 
   if (duplicateNames.length > 0 && !yes) {
-    // 交互模式：让用户选择
     logger.warn(
-      `发现 ${duplicateNames.length} 个同名 skills，请选择要保留的版本：`,
+      t('import.duplicateFound', { count: duplicateNames.length }),
     )
     logger.newline()
 
     for (const name of duplicateNames) {
       const duplicates = groups[name]
-      // 按时间排序（最新的在前）
       duplicates.sort((a, b) => {
         const timeA = getSkillModTime(a.path)
         const timeB = getSkillModTime(b.path)
         return timeB - timeA
       })
 
-      // 显示各版本信息
       logger.log(`  ${logger.bold(name)}:`)
       duplicates.forEach((skill, index) => {
         const time = getSkillModTime(skill.path)
         const timeStr = formatTime(time)
-        const latest = index === 0 ? logger.successText('(最新)') : ''
+        const latest = index === 0 ? logger.successText(t('import.latest')) : ''
         logger.log(
           `    ${index + 1}. ${logger.dim(skill.sourceApp)} - ${timeStr} ${latest}`,
         )
       })
 
-      // 让用户选择
       const { choice } = await inquirer.prompt([
         {
           type: 'list',
           name: 'choice',
-          message: `选择要导入的 ${name} 版本`,
+          message: t('import.selectVersion', { name }),
           choices: duplicates.map((skill, index) => ({
-            name: `${skill.sourceApp} - ${formatTime(getSkillModTime(skill.path))}${index === 0 ? ' (最新)' : ''}`,
+            name: `${skill.sourceApp} - ${formatTime(getSkillModTime(skill.path))}${index === 0 ? ` ${t('import.latest')}` : ''}`,
             value: skill,
           })),
           default: 0,
@@ -177,7 +144,6 @@ export async function runImport(options = {}) {
       logger.newline()
     }
   } else {
-    // 自动模式：选择最新版本
     for (const name of Object.keys(groups)) {
       const duplicates = groups[name]
       duplicates.sort(
@@ -187,7 +153,6 @@ export async function runImport(options = {}) {
     }
   }
 
-  // 添加非重复的 skills（如果还没有添加）
   const uniqueNames = Object.keys(groups).filter(
     (name) => groups[name].length === 1,
   )
@@ -197,9 +162,8 @@ export async function runImport(options = {}) {
     }
   }
 
-  // 显示所有将要导入的 skills
   if (!yes) {
-    logger.log('将要导入的 skills：')
+    logger.log(t('import.willImport'))
     logger.newline()
 
     finalSkills.forEach((skill) => {
@@ -209,28 +173,26 @@ export async function runImport(options = {}) {
           ? skill.name.substring(0, padEnd - 2) + '..'
           : skill.name
       logger.log(
-        `  ${logger.dim('✔')} ${name.padEnd(padEnd)} 来自 ${skill.sourceApp}`,
+        `  ${logger.dim('✔')} ${name.padEnd(padEnd)} ${t('import.from')} ${skill.sourceApp}`,
       )
     })
     logger.newline()
 
-    // 确认导入
     const { confirm } = await inquirer.prompt([
       {
         type: 'confirm',
         name: 'confirm',
-        message: `确认导入 ${finalSkills.length} 个 skills？`,
+        message: t('import.confirmImport', { count: finalSkills.length }),
         default: true,
       },
     ])
 
     if (!confirm) {
-      logger.info('已取消')
+      logger.info(t('common.cancelled'))
       return
     }
   }
 
-  // 检查 master 中已存在的同名 skills
   const existingSkills = []
   const newSkills = []
 
@@ -243,19 +205,18 @@ export async function runImport(options = {}) {
     }
   }
 
-  // 处理已存在的 skills
   let overwrite = false
   if (existingSkills.length > 0) {
     if (!yes) {
       logger.newline()
-      logger.warn(`发现 ${existingSkills.length} 个与 master 中同名的 skills:`)
+      logger.warn(t('import.existingSkillsFound', { count: existingSkills.length }))
       existingSkills.forEach((s) => {
         const masterSkill = path.join(config.masterDir, s.name)
         const masterTime = getSkillModTime(masterSkill)
         const importTime = getSkillModTime(s.path)
         const isNewer = importTime > masterTime
         logger.log(
-          `  - ${s.name} ${isNewer ? logger.successText('(导入版本更新)') : logger.dim('(master 版本更新)')}`,
+          `  - ${s.name} ${isNewer ? logger.successText(t('import.importVersionNewer')) : logger.dim(t('import.masterVersionNewer'))}`,
         )
       })
 
@@ -263,16 +224,14 @@ export async function runImport(options = {}) {
         {
           type: 'confirm',
           name: 'overwriteChoice',
-          message: '是否覆盖这些同名 skills？',
+          message: t('import.overwritePrompt'),
           default: true,
         },
       ])
 
       overwrite = overwriteChoice
     } else {
-      // 自动模式：只覆盖更新的版本
       overwrite = true
-      // 过滤掉旧版本
       finalSkills = finalSkills.filter((s) => {
         const destPath = path.join(config.masterDir, s.name)
         if (fs.existsSync(destPath)) {
@@ -285,19 +244,17 @@ export async function runImport(options = {}) {
     }
 
     if (!overwrite && !yes) {
-      // 从导入列表中移除已存在的
       finalSkills = finalSkills.filter((s) => !existingSkills.includes(s))
 
       if (finalSkills.length === 0) {
-        logger.info('没有需要导入的新 skills')
+        logger.info(t('import.noNewSkills'))
         return
       }
     }
   }
 
-  // 导入 skills
   logger.newline()
-  logger.info('开始导入...')
+  logger.info(t('import.startImport'))
 
   let successCount = 0
   let failCount = 0
@@ -311,27 +268,26 @@ export async function runImport(options = {}) {
     )
 
     if (result.success) {
-      logger.success(`${skill.name} 已导入`)
+      logger.success(t('import.importSuccess', { name: skill.name }))
       successCount++
     } else if (result.skipped) {
-      logger.warn(result.message)
+      logger.warn(t('import.importSkipped', { message: result.message }))
     } else {
-      logger.error(`${skill.name}: ${result.message}`)
+      logger.error(t('import.importFailed', { name: skill.name, error: result.message }))
       failCount++
     }
   }
 
-  // 输出结果
   logger.newline()
   if (successCount > 0) {
-    logger.success(`已导入 ${successCount} 个 skills 到 ${config.masterDir}`)
+    logger.success(t('import.importResult', { count: successCount, path: config.masterDir }))
   }
   if (failCount > 0) {
-    logger.error(`${failCount} 个 skills 导入失败`)
+    logger.error(t('import.importFailCount', { count: failCount }))
   }
 
   logger.newline()
-  logger.hint('下一步：运行 skills-sync link 创建符号链接')
+  logger.hint(t('import.nextStepHint'))
 }
 
 export default { runImport }

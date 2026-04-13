@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "skills-sync",
   "version": "0.1.0",
   "type": "module",
@@ -35,7 +35,11 @@
   "license": "MIT",
   "scripts": {
     "start": "node bin/skills-sync.js",
-    "dev": "node --watch bin/skills-sync.js"
+    "dev": "node --watch bin/skills-sync.js",
+    "prepublishOnly": "node bin/skills-sync.js --version && npm pack --dry-run"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "chalk": "^5.3.0",
@@ -44,6 +48,6 @@
     "glob": "^10.3.10",
     "inquirer": "^9.2.15",
     "js-yaml": "^4.1.0",
-    "simple-git": "^3.22.1"
+    "simple-git": "^3.6.1"
   }
 }

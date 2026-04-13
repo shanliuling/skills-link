@@ -9,35 +9,27 @@ import fs from 'fs'
 import { logger } from '../core/logger.js'
 import { ensureConfig } from '../core/config.js'
 import { sync, pushToRemote, hasRemote } from '../core/git.js'
+import { t } from '../core/i18n.js'
 
-/**
- * 运行 sync 命令
- * @param {Object} options - 命令选项
- * @param {string} options.message - 自定义 commit message
- */
 export async function runSync(options = {}) {
   const { message } = options
 
-  // 检查配置
   const { exists, config } = ensureConfig()
   if (!exists) return
 
-  // 检查 Git 是否启用
   if (!config.git || !config.git.enabled) {
-    logger.warn('Git 同步未启用')
-    logger.hint('在 config.yaml 中设置 git.enabled: true 以启用 Git 同步')
+    logger.warn(t('sync.gitNotEnabled'))
+    logger.hint(t('sync.gitEnableHint'))
     return
   }
 
-  // 检查 master 目录
   if (!fs.existsSync(config.masterDir)) {
-    logger.error('Master 目录不存在，请检查 config.yaml 中的 masterDir 路径')
+    logger.error(t('sync.masterDirNotExist'))
     return
   }
 
-  logger.title('Git 同步')
+  logger.title(t('sync.title'))
 
-  // 执行同步（提交）
   const result = await sync(config.masterDir, message)
 
   if (!result.success) {
@@ -45,36 +37,32 @@ export async function runSync(options = {}) {
     return
   }
 
-  // 没有变更
   if (!result.hash) {
-    logger.info(result.message)
+    logger.info(t('sync.noChanges'))
     return
   }
 
-  logger.success(`已提交 (commit: ${result.hash})`)
+  logger.success(t('sync.commitSuccess', { hash: result.hash }))
 
-  // 检查是否需要推送
   if (!config.git.autoPush) {
-    logger.hint('自动推送未启用，手动运行 git push 推送到远端')
+    logger.hint(t('sync.autoPushDisabled'))
     return
   }
 
-  // 检查是否配置了远端
   const hasRemoteConfig = await hasRemote(config.masterDir)
   if (!hasRemoteConfig) {
-    logger.warn('未配置 Git 远端，跳过推送')
-    logger.hint('在 config.yaml 中设置 git.remote 以启用推送')
+    logger.warn(t('sync.noRemoteConfig'))
+    logger.hint(t('sync.remoteConfigHint'))
     return
   }
 
-  // 推送
-  logger.info('正在推送到远端...')
+  logger.info(t('sync.pushing'))
   const pushResult = await pushToRemote(config.masterDir)
 
   if (pushResult.success) {
-    logger.success(pushResult.message)
+    logger.success(t('sync.pushSuccess', { message: pushResult.message }))
   } else {
-    logger.error(pushResult.message)
+    logger.error(t('sync.pushFailed', { message: pushResult.message }))
   }
 }
 
