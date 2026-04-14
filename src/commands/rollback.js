@@ -36,7 +36,7 @@ export async function runRollback() {
   const isRepo = await isGitRepo(config.masterDir)
   if (!isRepo) {
     logger.error('Master 目录不是 Git 仓库')
-    logger.hint('运行 skills-sync setup 重新初始化 Git')
+    logger.hint('运行 skills-link setup 重新初始化 Git')
     return
   }
 

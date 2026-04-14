@@ -1,4 +1,4 @@
-# Skills-Sync
+# Skills-Link
 
 [English](./README.md) | 中文
 
@@ -7,13 +7,13 @@
 ## 安装
 
 ```bash
-npm i -g skills-sync
+npm i -g skills-link
 ```
 
 ## 快速开始
 
 ```bash
-skills-sync
+skills-link
 ```
 
 首次运行自动引导配置。
@@ -30,7 +30,7 @@ skills-sync
 
 | 命令          | 说明                              |
 | ------------- | --------------------------------- |
-| `skills-sync` | 交互式启动                        |
+| `skills-link` | 交互式启动                        |
 | `setup`       | 初始化配置                        |
 | `init`        | 一键初始化：setup + import + link |
 | `import`      | 导入本地 skills                   |
@@ -59,7 +59,7 @@ skills-sync
 
 ```bash
 # 命令行参数
-skills-sync --lang zh
+skills-link --lang zh
 
 # 环境变量
 export SKILLS_SYNC_LANG=zh

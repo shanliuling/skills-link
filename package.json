@@ -1,10 +1,10 @@
 {
-  "name": "skills-sync",
+  "name": "skills-link",
   "version": "0.1.0",
   "type": "module",
   "description": "CLI tool for syncing local skills folders across multiple AI apps",
   "bin": {
-    "skills-sync": "./bin/skills-sync.js"
+    "skills-link": "bin/skills-sync.js"
   },
   "main": "./bin/skills-sync.js",
   "files": [
@@ -15,7 +15,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/shanliuling/skills-sync.git"
+    "url": "git+https://github.com/shanliuling/skills-sync.git"
   },
   "homepage": "https://github.com/shanliuling/skills-sync",
   "bugs": {

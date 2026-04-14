@@ -31,7 +31,7 @@ export async function runApp(subcommand = 'list', options = {}) {
       break
     default:
       logger.error(`未知子命令: ${subcommand}`)
-      logger.hint('使用 skills-sync app add 或 skills-sync app list')
+      logger.hint('使用 skills-link app add 或 skills-link app list')
   }
 }
 
@@ -140,7 +140,7 @@ async function runAppList() {
 
   if (!config.apps || config.apps.length === 0) {
     logger.warn('没有配置任何应用')
-    logger.hint('运行 skills-sync app add 添加应用')
+    logger.hint('运行 skills-link app add 添加应用')
     return
   }
 

@@ -128,7 +128,7 @@ export function ensureConfig(cwd = process.cwd()) {
   const config = readConfig(cwd)
 
   if (!config) {
-    logger.error('请先运行 skills-sync setup 初始化配置')
+    logger.error('请先运行 skills-link setup 初始化配置')
     return { exists: false, config: null }
   }
 

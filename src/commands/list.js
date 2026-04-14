@@ -43,7 +43,7 @@ export async function runList() {
   }
 
   logger.newline()
-  logger.hint('运行 skills-sync import 导入这些 skills 到 master 目录')
+  logger.hint('运行 skills-link import 导入这些 skills 到 master 目录')
 }
 
 export default { runList }

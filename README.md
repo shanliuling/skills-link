@@ -1,4 +1,4 @@
-# Skills-Sync
+# Skills-Link
 
 English | [中文](./README.zh.md)
 
@@ -7,13 +7,13 @@ A CLI tool to sync local `skills` folders across multiple AI apps.
 ## Install
 
 ```bash
-npm i -g skills-sync
+npm i -g skills-link
 ```
 
 ## Quick Start
 
 ```bash
-skills-sync
+skills-link
 ```
 
 First run guides you through setup automatically.
@@ -30,7 +30,7 @@ First run guides you through setup automatically.
 
 | Command       | Description                      |
 | ------------- | -------------------------------- |
-| `skills-sync` | Interactive startup              |
+| `skills-link` | Interactive startup              |
 | `setup`       | Initialize config                |
 | `init`        | One-click: setup + import + link |
 | `import`      | Import local skills              |
