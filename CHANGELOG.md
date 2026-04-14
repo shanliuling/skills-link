@@ -32,7 +32,7 @@ This is a major release with significant improvements and new features.
 - ✅ **Continue** (new)
 - ✅ **Roo Code** (new)
 
-**Total: 10+ AI agents supported**
+**Total: 9 AI agents supported**
 
 #### Project Quality
 - ✅ GitHub badges (npm version, license, TypeScript, platform)
@@ -123,7 +123,7 @@ This is a major release with significant improvements and new features.
 This release represents a major milestone with TypeScript migration and extended agent support. Key highlights:
 
 **For Users:**
-- Support for 10+ popular AI coding assistants
+- Support for 9 popular AI coding assistants
 - Better cross-platform experience
 - More reliable with TypeScript and tests
 

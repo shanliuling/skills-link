@@ -1,0 +1,34 @@
+# Source files
+src/
+*.ts
+!*.d.ts
+tsconfig.json
+
+# Tests
+**/*.test.ts
+**/*.spec.ts
+coverage/
+
+# Development
+.git/
+.github/
+.vscode/
+.idea/
+
+# Misc
+*.log
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Config
+.gitignore
+.npmignore
+.eslintrc*
+.prettierrc*
+
+# Docs (keep README and LICENSE)
+CONTRIBUTING.md
+CHANGELOG.md
+CODE_OF_CONDUCT.md

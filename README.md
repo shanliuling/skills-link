@@ -1,6 +1,7 @@
 # Skills-Sync
 
 [![npm version](https://badge.fury.io/js/skills-sync.svg)](https://badge.fury.io/js/skills-sync)
+[![Build Status](https://github.com/shanliuling/skills-sync/workflows/CI/badge.svg)](https://github.com/shanliuling/skills-sync/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 [![Cross Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-green.svg)](https://github.com/shanliuling/skills-sync)

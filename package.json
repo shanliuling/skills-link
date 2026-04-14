@@ -9,10 +9,11 @@
   "main": "./bin/skills-sync.js",
   "files": [
     "bin",
-    "src",
     "dist",
+    "src/locales",
     "README.md",
-    "README.zh.md"
+    "README.zh.md",
+    "LICENSE"
   ],
   "repository": {
     "type": "git",
