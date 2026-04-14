@@ -32,8 +32,9 @@ export async function runHealth() {
   let notInstalledCount = 0
   let problemCount = 0
 
-  for (const { app, status, message } of linkStatuses) {
-    const name = app.name.padEnd(12)
+  for (const item of linkStatuses) {
+    const { status, message } = item
+    const name = item.name.padEnd(12)
 
     switch (status) {
       case LinkStatus.OK:
@@ -48,14 +49,14 @@ export async function runHealth() {
 
       case LinkStatus.NOT_LINKED:
         logger.warn(
-          `${name} ${t('health.statusNotLinked')}  →  ${t('health.fixLinkHint', { name: app.name })}`,
+          `${name} ${t('health.statusNotLinked')}  →  ${t('health.fixLinkHint', { name: item.name })}`,
         )
         notLinkedCount++
         break
 
       case LinkStatus.WRONG_TARGET:
         logger.warn(
-          `${name} ${t('health.statusWrongTarget')}  →  ${t('health.fixWrongTargetHint', { name: app.name })}`,
+          `${name} ${t('health.statusWrongTarget')}  →  ${t('health.fixWrongTargetHint', { name: item.name })}`,
         )
         problemCount++
         break
@@ -74,8 +75,8 @@ export async function runHealth() {
   if (config.git?.enabled) {
     const isRepo = await isGitRepo(config.masterDir)
     if (isRepo) {
-      const { relative } = await getLastSyncTime(config.masterDir)
-      logger.log(t('health.gitStatusEnabled', { time: relative }))
+      const lastSync = await getLastSyncTime(config.masterDir)
+      logger.log(t('health.gitStatusEnabled', { time: lastSync || '未知' }))
     } else {
       logger.warn(t('health.gitStatusEnabledNoRepo'))
     }

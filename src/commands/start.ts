@@ -288,7 +288,7 @@ async function setupWithoutGithub(masterDir, config) {
   const finalSkills = []
   for (const name of Object.keys(groups)) {
     const duplicates = groups[name]
-    duplicates.sort((a, b) => getSkillModTime(b.path) - getSkillModTime(a.path))
+    duplicates.sort((a, b) => getSkillModTime(b.path).getTime() - getSkillModTime(a.path).getTime())
     finalSkills.push(duplicates[0])
   }
 
@@ -350,7 +350,7 @@ async function scanAndMergeLocalSkills(masterDir, config) {
   const finalSkills = []
   for (const name of Object.keys(groups)) {
     const duplicates = groups[name]
-    duplicates.sort((a, b) => getSkillModTime(b.path) - getSkillModTime(a.path))
+    duplicates.sort((a, b) => getSkillModTime(b.path).getTime() - getSkillModTime(a.path).getTime())
     finalSkills.push(duplicates[0])
   }
 
@@ -451,15 +451,16 @@ async function showStatus(config) {
 
   let problemCount = 0
 
-  for (const { app, status } of linkStatuses) {
+  for (const item of linkStatuses) {
+    const { status } = item
     if (status === LinkStatus.OK) {
-      logger.success(t('start.appLinkedOk', { name: app.name }))
+      logger.success(t('start.appLinkedOk', { name: item.name }))
     } else if (status === LinkStatus.NOT_INSTALLED) {
       logger.log(
-        `  ${logger.dim('○')} ${t('start.appNotInstalledStatus', { name: app.name })}`,
+        `  ${logger.dim('○')} ${t('start.appNotInstalledStatus', { name: item.name })}`,
       )
     } else {
-      logger.warn(t('start.appNeedsFix', { name: app.name }))
+      logger.warn(t('start.appNeedsFix', { name: item.name }))
       problemCount++
     }
   }
@@ -505,7 +506,7 @@ async function autoImportNewSkills(config) {
   const finalSkills = []
   for (const name of Object.keys(groups)) {
     const duplicates = groups[name]
-    duplicates.sort((a, b) => getSkillModTime(b.path) - getSkillModTime(a.path))
+    duplicates.sort((a, b) => getSkillModTime(b.path).getTime() - getSkillModTime(a.path).getTime())
     finalSkills.push(duplicates[0])
   }
 

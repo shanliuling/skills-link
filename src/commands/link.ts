@@ -13,7 +13,7 @@ import { ensureConfig, getEnabledApps, findAppByName } from '../core/config.js'
 import { createJunction, pathExists } from '../core/symlink.js'
 import { t } from '../core/i18n.js'
 
-export async function runLink(options = {}) {
+export async function runLink(options: { app?: string; dryRun?: boolean } = {}) {
   const { app: appName, dryRun = false } = options
 
   const { exists, config } = ensureConfig()

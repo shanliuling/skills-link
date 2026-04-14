@@ -1,15 +1,16 @@
 {
-  "name": "skills-link",
-  "version": "0.1.0",
+  "name": "skills-sync",
+  "version": "1.0.0",
   "type": "module",
   "description": "CLI tool for syncing local skills folders across multiple AI apps",
   "bin": {
-    "skills-link": "bin/skills-sync.js"
+    "skills-sync": "bin/skills-sync.js"
   },
   "main": "./bin/skills-sync.js",
   "files": [
     "bin",
     "src",
+    "dist",
     "README.md",
     "README.zh.md"
   ],
@@ -35,9 +36,14 @@
   "author": "shanliuling",
   "license": "MIT",
   "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
     "start": "node bin/skills-sync.js",
     "dev": "node --watch bin/skills-sync.js",
-    "prepublishOnly": "node bin/skills-sync.js --version && npm pack --dry-run"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "prepublishOnly": "npm run build && node bin/skills-sync.js --version && npm pack --dry-run"
   },
   "publishConfig": {
     "access": "public"
@@ -50,5 +56,13 @@
     "inquirer": "^9.2.15",
     "js-yaml": "^4.1.0",
     "simple-git": "^3.6.1"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.9",
+    "@types/node": "^25.6.0",
+    "@vitest/ui": "^4.1.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4"
   }
 }

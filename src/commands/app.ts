@@ -21,7 +21,7 @@ import { createJunction } from '../core/symlink.js'
  * @param {string} subcommand - 子命令 (add / list)
  * @param {Object} options - 命令选项
  */
-export async function runApp(subcommand = 'list', options = {}) {
+export async function runApp(subcommand: string = 'list', options: Record<string, any> = {}) {
   switch (subcommand) {
     case 'add':
       await runAppAdd(options)
@@ -31,14 +31,14 @@ export async function runApp(subcommand = 'list', options = {}) {
       break
     default:
       logger.error(`未知子命令: ${subcommand}`)
-      logger.hint('使用 skills-link app add 或 skills-link app list')
+      logger.hint('使用 skills-sync app add 或 skills-sync app list')
   }
 }
 
 /**
  * 添加新应用
  */
-async function runAppAdd() {
+async function runAppAdd(options: Record<string, any> = {}) {
   // 检查配置
   const { exists, config } = ensureConfig()
   if (!exists) return

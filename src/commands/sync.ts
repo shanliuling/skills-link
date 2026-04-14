@@ -11,7 +11,7 @@ import { ensureConfig } from '../core/config.js'
 import { sync, pushToRemote, hasRemote } from '../core/git.js'
 import { t } from '../core/i18n.js'
 
-export async function runSync(options = {}) {
+export async function runSync(options: { message?: string } = {}) {
   const { message } = options
 
   const { exists, config } = ensureConfig()

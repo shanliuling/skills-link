@@ -24,7 +24,7 @@ import {
 /**
  * 获取 skill 的修改时间
  */
-function getSkillModTime(skillPath) {
+function getSkillModTime(skillPath: string): Date {
   try {
     const skillFile = path.join(skillPath, 'SKILL.md')
     if (fs.existsSync(skillFile)) {
@@ -123,7 +123,7 @@ export async function runInit() {
     for (const name of Object.keys(groups)) {
       const duplicates = groups[name]
       duplicates.sort(
-        (a, b) => getSkillModTime(b.path) - getSkillModTime(a.path),
+        (a, b) => getSkillModTime(b.path).getTime() - getSkillModTime(a.path).getTime(),
       )
       finalSkills.push(duplicates[0])
     }

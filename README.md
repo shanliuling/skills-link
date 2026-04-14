@@ -1,4 +1,9 @@
-# Skills-Link
+# Skills-Sync
+
+[![npm version](https://badge.fury.io/js/skills-sync.svg)](https://badge.fury.io/js/skills-sync)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
+[![Cross Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-green.svg)](https://github.com/shanliuling/skills-sync)
 
 English | [中文](./README.zh.md)
 
@@ -7,7 +12,7 @@ A CLI tool to sync local `skills` folders across multiple AI apps.
 ## Install
 
 ```bash
-npm i -g skills-link
+npm i -g skills-sync
 ```
 
 ## Quick Start
@@ -20,25 +25,40 @@ First run guides you through setup automatically.
 
 ## Features
 
-- 🔍 Auto-detect skills paths for Claude, Gemini, Codex, etc.
+- 🔍 Auto-detect skills paths for **10+ AI apps** (Claude, Gemini, Codex, Cursor, Windsurf, Copilot, Cline, Continue, Roo Code, etc.)
 - 🔗 Create symbolic links without admin rights (Windows Junction/macOS/Linux symlink)
 - 📦 One-click import of existing local skills
 - 🔄 Optional Git sync to GitHub
 - 🌐 Chinese and English interfaces
 - 🖥️ Cross-platform support: Windows, macOS, Linux
+- ⚡ Real-time sync - all apps share the same skills directory
+- 💾 Space efficient - single copy for all apps
+
+## Supported AI Apps
+
+- Claude
+- Gemini CLI
+- Codex
+- Cursor
+- Windsurf
+- GitHub Copilot
+- Cline
+- Continue
+- Roo Code
 
 ## Commands
 
-| Command       | Description                      |
-| ------------- | -------------------------------- |
-| `skills-link` | Interactive startup              |
-| `setup`       | Initialize config                |
-| `init`        | One-click: setup + import + link |
-| `import`      | Import local skills              |
-| `link`        | Create/repair links              |
-| `health`      | Check link status                |
-| `sync`        | Sync to GitHub                   |
-| `app`         | Manage app configs               |
+| Command        | Description                      |
+| -------------- | -------------------------------- |
+| `skills-sync`  | Interactive startup              |
+| `setup`        | Initialize config                |
+| `init`         | One-click: setup + import + link |
+| `import`       | Import local skills              |
+| `link`         | Create/repair links              |
+| `health`       | Check link status                |
+| `sync`         | Sync to GitHub                   |
+| `clone <repo>` | Clone skills repo from GitHub    |
+| `app`          | Manage app configs               |
 
 ## Path Detection
 

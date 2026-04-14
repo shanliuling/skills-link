@@ -26,7 +26,7 @@ import {
  * @param {Object} options - 命令选项
  * @param {string} options.repo - 远程仓库 URL（可选）
  */
-export async function runClone(options = {}) {
+export async function runClone(options: { repo?: string } = {}) {
   const { repo } = options
 
   logger.title('从 GitHub 克隆 Skills')
@@ -39,9 +39,9 @@ export async function runClone(options = {}) {
 
   if (configExists()) {
     config = readConfig()
-    masterDir = config.masterDir
-    if (!remoteUrl && config.git?.remote) {
-      remoteUrl = config.git.remote
+    masterDir = config!.masterDir
+    if (!remoteUrl && config!.git?.remote) {
+      remoteUrl = config!.git.remote
     }
     logger.info('使用现有配置')
   } else {
@@ -54,7 +54,7 @@ export async function runClone(options = {}) {
     defaultConfig.masterDir = detectedMasterDir
     defaultConfig.apps = mergedApps.map((app) => ({
       name: app.name,
-      skillsPath: app.skillsPath,
+      skillsPath: app.skillsPath || '',
       enabled: app.enabled !== false,
     }))
     writeConfig(defaultConfig)
@@ -69,7 +69,7 @@ export async function runClone(options = {}) {
   // 检查是否有远程仓库 URL
   if (!remoteUrl) {
     logger.error('没有指定远程仓库 URL')
-    logger.hint('使用: skills-link clone <repo-url>')
+    logger.hint('使用: skills-sync clone <repo-url>')
     logger.hint('或在 config.yaml 中配置 git.remote')
     return
   }
@@ -83,7 +83,7 @@ export async function runClone(options = {}) {
     const entries = fs.readdirSync(masterDir)
     if (entries.length > 0) {
       logger.error(`目录 ${masterDir} 已存在且不为空`)
-      logger.hint('请先删除或移动该目录，或使用 skills-link link 创建链接')
+      logger.hint('请先删除或移动该目录，或使用 skills-sync link 创建链接')
       return
     }
   }
