@@ -18,14 +18,14 @@ npm i -g skills-sync
 ## Quick Start
 
 ```bash
-skills-link
+skills-sync
 ```
 
 First run guides you through setup automatically.
 
 ## Features
 
-- 🔍 Auto-detect skills paths for **10+ AI apps** (Claude, Gemini, Codex, Cursor, Windsurf, Copilot, Cline, Continue, Roo Code, etc.)
+- 🔍 Auto-detect skills paths for **9 AI apps** (Claude, Gemini, Codex, Cursor, Windsurf, Copilot, Cline, Continue, Roo Code)
 - 🔗 Create symbolic links without admin rights (Windows Junction/macOS/Linux symlink)
 - 📦 One-click import of existing local skills
 - 🔄 Optional Git sync to GitHub

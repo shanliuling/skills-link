@@ -13,20 +13,7 @@ import { logger } from '../core/logger.js'
 import { ensureConfig } from '../core/config.js'
 import { scanSkills, copySkill } from '../core/scanner.js'
 import { t } from '../core/i18n.js'
-
-function getSkillModTime(skillPath: string): Date {
-  try {
-    const skillFile = path.join(skillPath, 'SKILL.md')
-    if (fs.existsSync(skillFile)) {
-      const stats = fs.statSync(skillFile)
-      return stats.mtime
-    }
-    const stats = fs.statSync(skillPath)
-    return stats.mtime
-  } catch {
-    return new Date(0)
-  }
-}
+import { getSkillModTime } from '../core/utils.js'
 
 function groupSkillsByName(skills: any[]): Record<string, any[]> {
   const groups: Record<string, any[]> = {}
@@ -214,7 +201,7 @@ export async function runImport(options: { yes?: boolean } = {}) {
         const masterSkill = path.join(config.masterDir, s.name)
         const masterTime = getSkillModTime(masterSkill)
         const importTime = getSkillModTime(s.path)
-        const isNewer = importTime > masterTime
+        const isNewer = importTime.getTime() > masterTime.getTime()
         logger.log(
           `  - ${s.name} ${isNewer ? logger.successText(t('import.importVersionNewer')) : logger.dim(t('import.masterVersionNewer'))}`,
         )

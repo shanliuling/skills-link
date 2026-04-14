@@ -56,8 +56,6 @@ export interface AppConfig {
  * 检测当前平台
  */
 const isWindows = process.platform === 'win32'
-const isMacOS = process.platform === 'darwin'
-const isLinux = process.platform === 'linux'
 
 /**
  * 检查路径是否存在
@@ -366,11 +364,13 @@ export function removeSymlink(linkPath: string, dryRun: boolean = false): LinkRe
 
   try {
     if (isWindows) {
-      // Windows: 使用 PowerShell 删除 Junction
-      const script = `Remove-Item ${escapePowerShellString(linkPath)} -Force`
-      const result = runPowerShell(script)
+      // Windows: 使用 cmd 删除 Junction（比 PowerShell 更可靠）
+      const absoluteLinkPath = path.resolve(linkPath)
+      const result = spawnSync('cmd', ['/c', 'rmdir', absoluteLinkPath], {
+        encoding: 'utf-8',
+      })
 
-      if (!result.success) {
+      if (result.status !== 0) {
         return {
           success: false,
           message: `删除失败: ${result.stderr || '未知错误'}`,

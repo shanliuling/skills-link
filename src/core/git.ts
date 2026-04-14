@@ -5,8 +5,6 @@
  * 所有操作在 git.enabled: false 时应跳过
  */
 
-import fs from 'fs'
-import path from 'path'
 import simpleGit from 'simple-git'
 import { logger } from './logger.js'
 
@@ -99,6 +97,7 @@ export async function hasChanges(repoPath: string): Promise<GitStatusResult> {
       files: [...status.staged, ...status.modified, ...status.not_added],
     }
   } catch (error) {
+    logger.error(`检查 Git 状态失败: ${(error as Error).message}`)
     return { hasChanges: false, files: [] }
   }
 }

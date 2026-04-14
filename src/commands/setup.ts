@@ -61,7 +61,17 @@ export async function runSetup() {
   const existingConfig = readConfig()
   const detectedMasterDir = detectMasterDir()
   const detectedApps = detectAllAppPaths()
-  const apps = mergeWithExistingConfig(detectedApps, existingConfig ? { apps: existingConfig.apps as any } : null)
+  const apps = mergeWithExistingConfig(
+    detectedApps,
+    existingConfig
+      ? {
+          apps: (existingConfig.apps || []).map((app) => ({
+            ...app,
+            exists: fs.existsSync(app.skillsPath),
+          })),
+        }
+      : null,
+  )
 
   logger.info(t('setup.detectedPaths'))
   logger.newline()

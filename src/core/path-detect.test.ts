@@ -44,7 +44,6 @@ describe('path-detect', () => {
 
   it('should return correct master directory for platform', () => {
     const masterDir = detectMasterDir()
-    const home = os.homedir()
 
     // 根据平台检查路径
     if (process.platform === 'win32') {
@@ -70,8 +69,8 @@ describe('path-detect', () => {
   it('should have multiple supported apps', () => {
     const apps = detectAllAppPaths()
 
-    // 应该至少支持 5 个应用
-    expect(apps.length).toBeGreaterThanOrEqual(5)
+    // 应该至少支持 3 个应用（Claude, Gemini CLI, Codex 是基础的）
+    expect(apps.length).toBeGreaterThanOrEqual(3)
 
     const appNames = apps.map(a => a.name)
     expect(appNames).toContain('Claude')

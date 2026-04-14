@@ -12,6 +12,8 @@ import { logger } from './logger.js'
 import { detectMasterDir } from './path-detect.js'
 import { t } from './i18n.js'
 
+const JSON_SCHEMA = yaml.JSON_SCHEMA
+
 const CONFIG_FILENAME = 'config.yaml'
 
 /**
@@ -139,7 +141,7 @@ export function readConfig(cwd: string = process.cwd()): GlobalConfig | null {
 
   try {
     const content = fs.readFileSync(configPath, 'utf-8')
-    return yaml.load(content) as GlobalConfig
+    return yaml.load(content, { schema: JSON_SCHEMA }) as GlobalConfig
   } catch (error) {
     logger.error(t('setup.readFailed', { error: (error as Error).message }))
     return null
@@ -185,6 +187,10 @@ export function validateConfig(config: GlobalConfig | null): ConfigValidationRes
 
   if (!config.git || typeof config.git.enabled !== 'boolean') {
     errors.push('缺少 git.enabled 配置')
+  }
+
+  if (!config.watch || typeof config.watch.enabled !== 'boolean') {
+    errors.push('缺少 watch.enabled 配置')
   }
 
   if (!config.apps || !Array.isArray(config.apps)) {

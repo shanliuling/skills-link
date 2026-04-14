@@ -112,7 +112,9 @@ export function t(key: string, params: Record<string, string | number> = {}): st
 
   let result = value
   for (const [paramKey, paramValue] of Object.entries(params)) {
-    result = result.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(paramValue))
+    // Escape special regex characters to prevent ReDoS
+    const escapedKey = paramKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    result = result.replace(new RegExp(`\\{${escapedKey}\\}`, 'g'), String(paramValue))
   }
 
   return result

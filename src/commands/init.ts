@@ -20,23 +20,7 @@ import {
   detectMasterDir,
   mergeWithExistingConfig,
 } from '../core/path-detect.js'
-
-/**
- * 获取 skill 的修改时间
- */
-function getSkillModTime(skillPath: string): Date {
-  try {
-    const skillFile = path.join(skillPath, 'SKILL.md')
-    if (fs.existsSync(skillFile)) {
-      const stats = fs.statSync(skillFile)
-      return stats.mtime
-    }
-    const stats = fs.statSync(skillPath)
-    return stats.mtime
-  } catch {
-    return new Date(0)
-  }
-}
+import { getSkillModTime } from '../core/utils.js'
 
 /**
  * 运行 init 命令
