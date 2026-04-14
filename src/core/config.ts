@@ -10,6 +10,7 @@ import os from 'os'
 import yaml from 'js-yaml'
 import { logger } from './logger.js'
 import { detectMasterDir } from './path-detect.js'
+import { t } from './i18n.js'
 
 const CONFIG_FILENAME = 'config.yaml'
 
@@ -140,7 +141,7 @@ export function readConfig(cwd: string = process.cwd()): GlobalConfig | null {
     const content = fs.readFileSync(configPath, 'utf-8')
     return yaml.load(content) as GlobalConfig
   } catch (error) {
-    logger.error(`读取配置文件失败: ${(error as Error).message}`)
+    logger.error(t('setup.readFailed', { error: (error as Error).message }))
     return null
   }
 }
@@ -162,7 +163,7 @@ export function writeConfig(config: GlobalConfig, cwd: string = process.cwd()): 
     fs.writeFileSync(configPath, content, 'utf-8')
     return true
   } catch (error) {
-    logger.error(`写入配置文件失败: ${(error as Error).message}`)
+    logger.error(t('setup.writeFailed', { error: (error as Error).message }))
     return false
   }
 }
@@ -212,7 +213,6 @@ export function ensureConfig(cwd: string = process.cwd()): { exists: boolean; co
   const config = readConfig(cwd)
 
   if (!config) {
-    logger.error('请先运行 skills-sync setup 初始化配置')
     return { exists: false, config: null }
   }
 

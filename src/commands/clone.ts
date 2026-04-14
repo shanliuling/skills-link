@@ -39,9 +39,11 @@ export async function runClone(options: { repo?: string } = {}) {
 
   if (configExists()) {
     config = readConfig()
-    masterDir = config!.masterDir
-    if (!remoteUrl && config!.git?.remote) {
-      remoteUrl = config!.git.remote
+    if (config) {
+      masterDir = config.masterDir
+      if (!remoteUrl && config.git?.remote) {
+        remoteUrl = config.git.remote
+      }
     }
     logger.info('使用现有配置')
   } else {

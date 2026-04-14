@@ -10,6 +10,7 @@ import path from 'path'
 import os from 'os'
 import { glob } from 'glob'
 import { logger } from './logger.js'
+import { t } from './i18n.js'
 
 /**
  * Skill 信息接口
@@ -99,7 +100,7 @@ export async function scanSkills(options: ScanOptions = {}): Promise<SkillInfo[]
   const skills: SkillInfo[] = []
   const seenPaths = new Set<string>()
 
-  logger.info('扫描中...')
+  logger.info(t('import.scanning'))
   logger.newline()
 
   for (const searchPath of searchPaths) {
