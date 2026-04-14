@@ -21,10 +21,11 @@ First run guides you through setup automatically.
 ## Features
 
 - 🔍 Auto-detect skills paths for Claude, Gemini, Codex, etc.
-- 🔗 Create Windows Junction links without admin rights
+- 🔗 Create symbolic links without admin rights (Windows Junction/macOS/Linux symlink)
 - 📦 One-click import of existing local skills
 - 🔄 Optional Git sync to GitHub
 - 🌐 Chinese and English interfaces
+- 🖥️ Cross-platform support: Windows, macOS, Linux
 
 ## Commands
 
@@ -86,8 +87,22 @@ apps:
 
 ## Requirements
 
-- Windows (primary platform)
+- **Windows**, **macOS**, or **Linux**
 - Node.js 18+
+
+### Platform-specific Notes
+
+**Windows:**
+- Uses Junction links (no admin rights required)
+- Supports custom installation locations (non-C drives)
+
+**macOS:**
+- Uses native symbolic links
+- No sudo required for user directories
+
+**Linux:**
+- Uses native symbolic links
+- Supports XDG_CONFIG_HOME and XDG_DATA_HOME
 
 ## License
 

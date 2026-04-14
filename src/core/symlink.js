@@ -1,8 +1,9 @@
 /**
- * symlink.js - Windows Junction 创建/验证
+ * symlink.js - 跨平台符号链接创建/验证
  *
- * 通过 PowerShell 创建 Windows Junction（目录级 symlink，无需管理员权限）
- * 提供 Junction 的创建、验证、检查等功能
+ * Windows: 使用 Junction（目录级 symlink，无需管理员权限）
+ * macOS/Linux: 使用原生 symlink（用户目录下无需 sudo）
+ * 提供符号链接的创建、验证、检查等功能
  */
 
 import { execSync, spawnSync } from 'child_process'
@@ -22,6 +23,13 @@ export const LinkStatus = {
 }
 
 /**
+ * 检测当前平台
+ */
+const isWindows = process.platform === 'win32'
+const isMacOS = process.platform === 'darwin'
+const isLinux = process.platform === 'linux'
+
+/**
  * 检查路径是否存在
  * @param {string} targetPath - 目标路径
  * @returns {boolean} 是否存在
@@ -31,11 +39,11 @@ export function pathExists(targetPath) {
 }
 
 /**
- * 检查路径是否是 Junction
+ * 检查路径是否是符号链接（兼容旧名称）
  * @param {string} targetPath - 目标路径
- * @returns {boolean} 是否是 Junction
+ * @returns {boolean} 是否是符号链接
  */
-export function isJunction(targetPath) {
+export function isSymlink(targetPath) {
   if (!fs.existsSync(targetPath)) {
     return false
   }
@@ -49,24 +57,43 @@ export function isJunction(targetPath) {
 }
 
 /**
- * 获取 Junction 的目标路径
- * @param {string} junctionPath - Junction 路径
- * @returns {string|null} 目标路径，不是 Junction 则返回 null
+ * 检查路径是否是 Junction（别名，向后兼容）
+ * @param {string} targetPath - 目标路径
+ * @returns {boolean} 是否是符号链接
  */
-export function getJunctionTarget(junctionPath) {
-  if (!fs.existsSync(junctionPath)) {
+export const isJunction = isSymlink
+
+/**
+ * 获取符号链接的目标路径（跨平台）
+ * @param {string} linkPath - 符号链接路径
+ * @returns {string|null} 目标路径，不是符号链接则返回 null
+ */
+export function getSymlinkTarget(linkPath) {
+  if (!fs.existsSync(linkPath)) {
     return null
   }
 
   try {
-    // 使用参数化执行 PowerShell 获取 Junction 目标
-    const script = `(Get-Item ${escapePowerShellString(junctionPath)}).Target`
-    const result = runPowerShell(script)
-    return result.stdout || null
+    if (isWindows) {
+      // Windows: 使用 PowerShell 获取 Junction 目标
+      const script = `(Get-Item ${escapePowerShellString(linkPath)}).Target`
+      const result = runPowerShell(script)
+      return result.stdout || null
+    } else {
+      // macOS/Linux: 使用 Node.js 原生 API
+      return fs.readlinkSync(linkPath)
+    }
   } catch {
     return null
   }
 }
+
+/**
+ * 获取 Junction 的目标路径（别名，向后兼容）
+ * @param {string} junctionPath - Junction 路径
+ * @returns {string|null} 目标路径
+ */
+export const getJunctionTarget = getSymlinkTarget
 
 /**
  * 检查应用链接状态
@@ -94,23 +121,23 @@ export function checkLinkStatus(app, masterDir) {
     }
   }
 
-  // 检查是否是 Junction
-  if (!isJunction(skillsPath)) {
+  // 检查是否是符号链接
+  if (!isSymlink(skillsPath)) {
     return {
       status: LinkStatus.NOT_LINKED,
-      message: '路径存在但不是 Junction',
+      message: '路径存在但不是符号链接',
     }
   }
 
-  // 检查 Junction 目标是否正确
-  const target = getJunctionTarget(skillsPath)
+  // 检查符号链接目标是否正确
+  const target = getSymlinkTarget(skillsPath)
   const normalizedTarget = target ? path.normalize(target) : null
   const normalizedMaster = path.normalize(masterDir)
 
   if (normalizedTarget !== normalizedMaster) {
     return {
       status: LinkStatus.WRONG_TARGET,
-      message: `是 Junction 但指向错误目录: ${target}`,
+      message: `是符号链接但指向错误目录: ${target}`,
     }
   }
 
@@ -151,17 +178,17 @@ function runPowerShell(script) {
 }
 
 /**
- * 创建 Junction 链接
+ * 创建符号链接（跨平台）
  * @param {string} target - 目标目录（masterDir）
  * @param {string} linkPath - 链接路径
  * @param {boolean} dryRun - 是否只打印不执行
  * @returns {{ success: boolean, message: string, backup?: string }} 结果
  */
-export function createJunction(target, linkPath, dryRun = false) {
+export function createSymlink(target, linkPath, dryRun = false) {
   if (dryRun) {
     return {
       success: true,
-      message: `[DRY-RUN] 将创建 Junction: ${linkPath} → ${target}`,
+      message: `[DRY-RUN] 将创建符号链接: ${linkPath} → ${target}`,
     }
   }
 
@@ -180,7 +207,7 @@ export function createJunction(target, linkPath, dryRun = false) {
       const stats = fs.lstatSync(linkPath)
       if (stats.isSymbolicLink()) {
         // 已是符号链接，删除
-        fs.rmSync(linkPath, { recursive: true, force: true })
+        fs.unlinkSync(linkPath)
       } else {
         // 普通目录，备份
         backupPath = `${linkPath}.backup`
@@ -193,14 +220,34 @@ export function createJunction(target, linkPath, dryRun = false) {
       }
     }
 
-    // 使用参数化执行 PowerShell 创建 Junction
+    // 根据平台创建符号链接
+    if (isWindows) {
+      // Windows: 使用 PowerShell 创建 Junction（无需管理员权限）
+      return createWindowsJunction(target, linkPath, backupPath)
+    } else {
+      // macOS/Linux: 使用 Node.js 原生 symlink
+      return createUnixSymlink(target, linkPath, backupPath)
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: `创建符号链接失败: ${error.message}`,
+    }
+  }
+}
+
+/**
+ * 创建 Windows Junction（无需管理员权限）
+ */
+function createWindowsJunction(target, linkPath, backupPath) {
+  try {
     const script = `New-Item -ItemType Junction -Path ${escapePowerShellString(linkPath)} -Target ${escapePowerShellString(target)}`
     const result = runPowerShell(script)
 
     if (!result.success) {
       return {
         success: false,
-        message: `创建符号链接失败: ${result.stderr || '未知错误'}`,
+        message: `创建 Junction 失败: ${result.stderr || '未知错误'}`,
       }
     }
 
@@ -212,10 +259,65 @@ export function createJunction(target, linkPath, dryRun = false) {
   } catch (error) {
     return {
       success: false,
-      message: `创建符号链接失败: ${error.message}`,
+      message: `创建 Junction 失败: ${error.message}`,
     }
   }
 }
+
+/**
+ * 创建 macOS/Linux 符号链接（用户目录下无需 sudo）
+ */
+function createUnixSymlink(target, linkPath, backupPath) {
+  try {
+    // 检查父目录是否可写
+    const parentDir = path.dirname(linkPath)
+    try {
+      fs.accessSync(parentDir, fs.constants.W_OK)
+    } catch (error) {
+      return {
+        success: false,
+        message: `父目录无写入权限: ${parentDir}`,
+        hint: '请检查目录权限或确认应用已正确安装',
+      }
+    }
+
+    // 创建符号链接
+    fs.symlinkSync(target, linkPath, 'dir')
+
+    return {
+      success: true,
+      message: '符号链接创建成功',
+      backup: backupPath,
+    }
+  } catch (error) {
+    // 详细的错误处理
+    let errorMessage = error.message
+    let hint = ''
+
+    if (error.code === 'EPERM') {
+      errorMessage = '权限不足: 无法创建符号链接'
+      hint = '用户目录下不应出现此问题，请检查文件系统权限'
+    } else if (error.code === 'EACCES') {
+      errorMessage = '访问被拒绝: 权限不足'
+      hint = '请检查是否有写入权限'
+    } else if (error.code === 'EEXIST') {
+      errorMessage = '路径已存在且无法删除'
+      hint = '请手动删除现有路径后重试'
+    }
+
+    return {
+      success: false,
+      message: errorMessage,
+      hint,
+      error: error.message,
+    }
+  }
+}
+
+/**
+ * 创建 Junction 链接（别名，向后兼容）
+ */
+export const createJunction = createSymlink
 
 /**
  * 转义 PowerShell 字符串
@@ -228,16 +330,16 @@ function escapePowerShellString(str) {
 }
 
 /**
- * 删除 Junction 链接
+ * 删除符号链接（跨平台）
  * @param {string} linkPath - 链接路径
  * @param {boolean} dryRun - 是否只打印不执行
  * @returns {{ success: boolean, message: string }} 结果
  */
-export function removeJunction(linkPath, dryRun = false) {
+export function removeSymlink(linkPath, dryRun = false) {
   if (dryRun) {
     return {
       success: true,
-      message: `[DRY-RUN] 将删除 Junction: ${linkPath}`,
+      message: `[DRY-RUN] 将删除符号链接: ${linkPath}`,
     }
   }
 
@@ -248,28 +350,37 @@ export function removeJunction(linkPath, dryRun = false) {
     }
   }
 
-  if (!isJunction(linkPath)) {
+  if (!isSymlink(linkPath)) {
     return {
       success: false,
-      message: '路径不是 Junction，无法删除',
+      message: '路径不是符号链接，无法删除',
     }
   }
 
   try {
-    // 使用参数化执行 PowerShell 删除 Junction
-    const script = `Remove-Item ${escapePowerShellString(linkPath)} -Force`
-    const result = runPowerShell(script)
+    if (isWindows) {
+      // Windows: 使用 PowerShell 删除 Junction
+      const script = `Remove-Item ${escapePowerShellString(linkPath)} -Force`
+      const result = runPowerShell(script)
 
-    if (!result.success) {
-      return {
-        success: false,
-        message: `删除失败: ${result.stderr || '未知错误'}`,
+      if (!result.success) {
+        return {
+          success: false,
+          message: `删除失败: ${result.stderr || '未知错误'}`,
+        }
       }
-    }
 
-    return {
-      success: true,
-      message: 'Junction 已删除',
+      return {
+        success: true,
+        message: '符号链接已删除',
+      }
+    } else {
+      // macOS/Linux: 使用 fs.unlinkSync
+      fs.unlinkSync(linkPath)
+      return {
+        success: true,
+        message: '符号链接已删除',
+      }
     }
   } catch (error) {
     return {
@@ -278,6 +389,11 @@ export function removeJunction(linkPath, dryRun = false) {
     }
   }
 }
+
+/**
+ * 删除 Junction 链接（别名，向后兼容）
+ */
+export const removeJunction = removeSymlink
 
 /**
  * 批量检查所有应用的链接状态
@@ -295,10 +411,14 @@ export function checkAllLinks(config) {
 export default {
   LinkStatus,
   pathExists,
+  isSymlink,
   isJunction,
+  getSymlinkTarget,
   getJunctionTarget,
   checkLinkStatus,
+  createSymlink,
   createJunction,
+  removeSymlink,
   removeJunction,
   checkAllLinks,
 }

@@ -14,6 +14,23 @@ const CONFIG_FILENAME = 'config.yaml'
 
 export function getDefaultConfig() {
   const homeDir = os.homedir()
+  const platform = process.platform
+
+  // 根据平台生成 Claude 默认路径
+  let claudePath
+  if (platform === 'win32') {
+    claudePath = path.join(homeDir, 'AppData/Roaming/Claude/skills')
+  } else if (platform === 'darwin') {
+    claudePath = path.join(homeDir, 'Library/Application Support/Claude/skills')
+  } else {
+    // Linux
+    claudePath = path.join(process.env.XDG_CONFIG_HOME || path.join(homeDir, '.config'), 'claude/skills')
+  }
+
+  // Gemini 和 Codex 在所有平台都使用 ~/.xxx
+  const geminiPath = path.join(homeDir, '.gemini/skills')
+  const codexPath = path.join(homeDir, '.codex/skills')
+
   return {
     masterDir: path.join(homeDir, 'AISkills'),
     language: 'en',
@@ -29,17 +46,17 @@ export function getDefaultConfig() {
     apps: [
       {
         name: 'Claude',
-        skillsPath: path.join(homeDir, 'AppData/Roaming/Claude/skills'),
+        skillsPath: claudePath,
         enabled: true,
       },
       {
         name: 'Gemini CLI',
-        skillsPath: path.join(homeDir, '.gemini/skills'),
+        skillsPath: geminiPath,
         enabled: true,
       },
       {
         name: 'Codex',
-        skillsPath: path.join(homeDir, '.codex/skills'),
+        skillsPath: codexPath,
         enabled: true,
       },
     ],
