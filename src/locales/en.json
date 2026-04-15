@@ -14,7 +14,8 @@
       "list": "List user-downloaded skills on this computer",
       "init": "One-click init: setup + import + link",
       "clone": "Clone skills repo from GitHub and create links",
-      "app": "App management (add / list)"
+      "app": "App management (add / list)",
+      "reset": "Reset to initial state (before using skills-link)"
     },
     "options": {
       "skipConfirm": "Skip all confirmations, auto-select latest version",

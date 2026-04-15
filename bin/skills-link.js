@@ -13,6 +13,7 @@ import { runList } from '../dist/commands/list.js'
 import { runInit } from '../dist/commands/init.js'
 import { runClone } from '../dist/commands/clone.js'
 import { runStart } from '../dist/commands/start.js'
+import { runReset } from '../dist/commands/reset.js'
 import { initI18n, getLocalePriority, t } from '../dist/core/i18n.js'
 import { readConfig } from '../dist/core/config.js'
 
@@ -113,6 +114,12 @@ program
   .command('app [subcommand]')
   .description(t('cli.commands.app'))
   .action((subcommand) => runApp(subcommand || 'list'))
+
+program
+  .command('reset')
+  .description(t('cli.commands.reset'))
+  .option('-d, --dry-run', t('cli.options.dryRun'))
+  .action((options) => runReset(options))
 
 if (process.argv.length === 2) {
   runStart()
