@@ -49,7 +49,12 @@ export async function runReset(options: { dryRun?: boolean } = {}) {
   logger.info('正在检测改动...')
   const changes = detectChanges(config)
 
-  if (changes.symlinks.length === 0 && changes.backups.length === 0) {
+  if (
+    changes.symlinks.length === 0 &&
+    changes.backups.length === 0 &&
+    !changes.configFile &&
+    !changes.masterDir
+  ) {
     logger.warn('未检测到任何改动')
     logger.hint('可能已经重置过了，或者没有执行过初始化')
     return
