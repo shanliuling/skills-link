@@ -301,6 +301,8 @@
     "saveFailed": "保存配置失败",
     "totalCount": "共 {count} 个应用",
     "selectRemove": "选择要删除的应用",
+    "selectEnable": "选择要启用的应用",
+    "selectDisable": "选择要禁用的应用",
     "appNotFound": "未找到应用: {name}",
     "removeConfirm": "确认从配置中删除 {name}？",
     "removeSuccess": "已从 config.yaml 中删除 {name}",

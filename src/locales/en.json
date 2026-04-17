@@ -301,6 +301,8 @@
     "saveFailed": "Failed to save config",
     "totalCount": "Total: {count} apps",
     "selectRemove": "Select app to remove",
+    "selectEnable": "Select app to enable",
+    "selectDisable": "Select app to disable",
     "appNotFound": "App not found: {name}",
     "removeConfirm": "Remove {name} from config?",
     "removeSuccess": "Removed {name} from config.yaml",

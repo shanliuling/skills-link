@@ -196,15 +196,31 @@ async function runAppToggle(name: string | undefined, enabled: boolean) {
   const { exists, config } = ensureConfig()
   if (!exists || !config) return
 
-  if (!name) {
-    logger.error(t('app.nameRequired'))
-    logger.hint(enabled ? t('app.enableHint') : t('app.disableHint'))
-    return
+  let appName = name
+
+  if (!appName) {
+    if (!config.apps || config.apps.length === 0) {
+      logger.warn(t('app.noApps'))
+      return
+    }
+
+    const { selected } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'selected',
+        message: enabled ? t('app.selectEnable') : t('app.selectDisable'),
+        choices: config.apps.map((app) => ({
+          name: `${app.name} (${app.skillsPath})`,
+          value: app.name,
+        })),
+      },
+    ])
+    appName = selected
   }
 
-  const app = findAppByName(config, name)
+  const app = findAppByName(config, appName!)
   if (!app) {
-    logger.error(t('app.appNotFound', { name }))
+    logger.error(t('app.appNotFound', { name: appName! }))
     return
   }
 
