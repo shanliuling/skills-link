@@ -1,7 +1,10 @@
 /**
  * path-detect.ts - 跨平台路径智能探测模块
  *
- * 自动探测 AI 应用的 skills 路径，支持 Windows/macOS/Linux
+ * 核心思路：声明式注册表 + 通用路径解析器
+ * - agentRegistry: 每个 agent 只需一行声明，自动推导项目级/全局级路径
+ * - resolveGlobalPath: 通用跨平台路径解析（替换掉原来每个 agent 一套 if/else）
+ * - 保留 detectAppPath / detectAllAppPaths 做运行时探测
  */
 
 import fs from 'fs'
@@ -9,11 +12,14 @@ import path from 'path'
 import os from 'os'
 
 /**
- * 应用定义接口
+ * Agent 路径定义
+ * - projectPath: 项目内的 skills 目录（相对路径，如 .cursor/skills）
+ * - globalPath: 全局 skills 目录模板，支持 ~ / $XDG_CONFIG_HOME / $CLAUDE_CONFIG_DIR
  */
-interface AppDefinition {
-  name: string
-  candidates: Array<(() => string | null)>
+export interface AgentPathDef {
+  displayName: string
+  projectPath: string
+  globalPath: string
 }
 
 /**
@@ -26,290 +32,146 @@ export interface DetectedAppPath {
   enabled?: boolean
 }
 
-/**
- * 获取 Claude 应用的候选路径
- */
-function getClaudeCandidates(): Array<() => string | null> {
-  const platform = process.platform
-  const home = os.homedir()
+// ─── 声明式注册表：加一个 agent 只需加一行 ───
 
-  if (platform === 'win32') {
-    // Windows: AppData/Roaming 或 AppData/Local
-    return [
-      () => path.join(home, 'AppData/Roaming/Claude/skills'),
-      () => path.join(process.env.APPDATA || '', 'Claude/skills'),
-      () => path.join(process.env.LOCALAPPDATA || '', 'Claude/skills'),
-      () => `C:/Users/${os.userInfo().username}/AppData/Roaming/Claude/skills`,
-    ]
-  } else if (platform === 'darwin') {
-    // macOS: Library/Application Support 或 .config
-    return [
-      () => path.join(home, 'Library/Application Support/Claude/skills'),
-      () => path.join(process.env.XDG_CONFIG_HOME || path.join(home, '.config'), 'claude/skills'),
-    ]
-  } else {
-    // Linux: .config 或 .local/share
-    return [
-      () => path.join(process.env.XDG_CONFIG_HOME || path.join(home, '.config'), 'claude/skills'),
-      () => path.join(home, '.local/share/claude/skills'),
-      () => path.join(home, '.claude/skills'),
-    ]
-  }
+export const agentRegistry: Record<string, AgentPathDef> = {
+  // A
+  adal:         { displayName: 'AdaL',          projectPath: '.adal/skills',    globalPath: '~/.adal/skills' },
+  amp:          { displayName: 'Amp',           projectPath: '.amp/skills',     globalPath: '~/.amp/skills' },
+  antigravity:  { displayName: 'Antigravity',   projectPath: '.agent/skills',   globalPath: '~/.gemini/antigravity/skills' },
+  augment:      { displayName: 'Augment',       projectPath: '.augment/skills', globalPath: '~/.augment/skills' },
+
+  // C
+  claude:       { displayName: 'Claude Code',   projectPath: '.claude/skills',  globalPath: '$CLAUDE_CONFIG_DIR/skills' },
+  cline:        { displayName: 'Cline',         projectPath: '.cline/skills',   globalPath: '~/.cline/skills' },
+  codebuddy:    { displayName: 'CodeBuddy',     projectPath: '.codebuddy/skills', globalPath: '~/.codebuddy/skills' },
+  codex:        { displayName: 'Codex',         projectPath: '.codex/skills',   globalPath: '~/.codex/skills' },
+  'command-code': { displayName: 'Command Code', projectPath: '.commandcode/skills', globalPath: '~/.commandcode/skills' },
+  continue:     { displayName: 'Continue',      projectPath: '.continue/skills', globalPath: '~/.continue/skills' },
+  cortex:       { displayName: 'Cortex Code',   projectPath: '.cortex/skills',  globalPath: '~/.snowflake/cortex/skills' },
+  crush:        { displayName: 'Crush',         projectPath: '.crush/skills',   globalPath: '$XDG_CONFIG_HOME/crush/skills' },
+  cursor:       { displayName: 'Cursor',        projectPath: '.cursor/skills',  globalPath: '~/.cursor/skills' },
+
+  // D
+  droid:        { displayName: 'Droid',         projectPath: '.factory/skills', globalPath: '~/.factory/skills' },
+
+  // G
+  'gemini-cli': { displayName: 'Gemini CLI',    projectPath: '.agent/skills',   globalPath: '~/.gemini/skills' },
+  'github-copilot': { displayName: 'GitHub Copilot', projectPath: '.github/skills', globalPath: '~/.copilot/skills' },
+  goose:        { displayName: 'Goose',         projectPath: '.goose/skills',   globalPath: '$XDG_CONFIG_HOME/goose/skills' },
+
+  // I-K
+  'iflow-cli':  { displayName: 'iFlow CLI',     projectPath: '.iflow/skills',   globalPath: '~/.iflow/skills' },
+  junie:        { displayName: 'Junie',         projectPath: '.junie/skills',   globalPath: '~/.junie/skills' },
+  kilo:         { displayName: 'Kilo Code',     projectPath: '.kilocode/skills', globalPath: '~/.kilocode/skills' },
+  'kimi-cli':   { displayName: 'Kimi Code CLI', projectPath: '.kimi/skills',    globalPath: '$XDG_CONFIG_HOME/kimi/skills' },
+  'kiro-cli':   { displayName: 'Kiro CLI',      projectPath: '.kiro/skills',    globalPath: '~/.kiro/skills' },
+  kode:         { displayName: 'Kode',          projectPath: '.kode/skills',    globalPath: '~/.kode/skills' },
+
+  // M-O
+  mcpjam:       { displayName: 'MCPJam',        projectPath: '.mcpjam/skills',  globalPath: '~/.mcpjam/skills' },
+  'mistral-vibe': { displayName: 'Mistral Vibe', projectPath: '.vibe/skills',   globalPath: '~/.vibe/skills' },
+  mux:          { displayName: 'Mux',           projectPath: '.mux/skills',     globalPath: '~/.mux/skills' },
+  neovate:      { displayName: 'Neovate',       projectPath: '.neovate/skills', globalPath: '~/.neovate/skills' },
+  openclaw:     { displayName: 'OpenClaw',      projectPath: '.openclaw/skills', globalPath: '~/.openclaw/skills' },
+  opencode:     { displayName: 'OpenCode',      projectPath: '.opencode/skills', globalPath: '~/.opencode/skills' },
+  openhands:    { displayName: 'OpenHands',     projectPath: '.openhands/skills', globalPath: '~/.openhands/skills' },
+
+  // P-R
+  pi:           { displayName: 'Pi',            projectPath: '.pi/skills',      globalPath: '~/.pi/agent/skills' },
+  pochi:        { displayName: 'Pochi',         projectPath: '.pochi/skills',   globalPath: '~/.pochi/skills' },
+  qoder:        { displayName: 'Qoder',         projectPath: '.qoder/skills',   globalPath: '~/.qoder/skills' },
+  'qwen-code':  { displayName: 'Qwen Code',     projectPath: '.qwen/skills',    globalPath: '~/.qwen/skills' },
+  replit:       { displayName: 'Replit',        projectPath: '.replit/skills',  globalPath: '$XDG_CONFIG_HOME/replit/skills' },
+  roo:          { displayName: 'Roo Code',      projectPath: '.roo/skills',     globalPath: '~/.roo/skills' },
+
+  // T-Z
+  trae:         { displayName: 'Trae',          projectPath: '.trae/skills',    globalPath: '~/.trae/skills' },
+  'trae-cn':    { displayName: 'Trae CN',       projectPath: '.trae/skills',    globalPath: '~/.trae-cn/skills' },
+  windsurf:     { displayName: 'Windsurf',      projectPath: '.windsurf/skills', globalPath: '~/.codeium/windsurf/skills' },
+  zencoder:     { displayName: 'Zencoder',      projectPath: '.zencoder/skills', globalPath: '~/.zencoder/skills' },
+
+  // Universal fallback
+  universal:    { displayName: 'Universal',     projectPath: '.agents/skills',  globalPath: '~/.agents/skills' },
 }
 
+// ─── 通用路径解析器（替代原来每个 agent 一套 if/else） ───
+
 /**
- * 获取 Gemini CLI 应用的候选路径
+ * 将模板路径解析为当前平台的真实绝对路径
+ *
+ * 支持的模板变量：
+ *   ~                   → 用户主目录
+ *   $XDG_CONFIG_HOME    → XDG 配置目录（默认 ~/.config）
+ *   $CLAUDE_CONFIG_DIR  → Claude 配置目录（默认 ~/.claude）
+ *   $APPDATA            → Windows AppData/Roaming
+ *   $LOCALAPPDATA       → Windows AppData/Local
  */
-function getGeminiCandidates(): Array<() => string | null> {
+export function resolveGlobalPath(template: string): string {
   const home = os.homedir()
-  // 所有平台都使用 ~/.gemini
-  return [
-    () => path.join(home, '.gemini/skills'),
-    () => process.env.USERPROFILE ? path.join(process.env.USERPROFILE, '.gemini/skills') : null,
+  let resolved = template
+
+  // 按最长匹配优先替换环境变量
+  const envVars: Array<{ pattern: RegExp; value: () => string }> = [
+    { pattern: /^\$CLAUDE_CONFIG_DIR/,  value: () => process.env.CLAUDE_CONFIG_DIR ?? path.join(home, '.claude') },
+    { pattern: /^\$XDG_CONFIG_HOME/,    value: () => process.env.XDG_CONFIG_HOME ?? path.join(home, '.config') },
+    { pattern: /^\$APPDATA/,            value: () => process.env.APPDATA ?? path.join(home, 'AppData', 'Roaming') },
+    { pattern: /^\$LOCALAPPDATA/,        value: () => process.env.LOCALAPPDATA ?? path.join(home, 'AppData', 'Local') },
   ]
-}
 
-/**
- * 获取 Codex 应用的候选路径
- */
-function getCodexCandidates(): Array<() => string | null> {
-  const home = os.homedir()
-  // 所有平台都使用 ~/.codex
-  return [
-    () => path.join(home, '.codex/skills'),
-  ]
-}
-
-/**
- * 获取 Cursor 应用的候选路径
- */
-function getCursorCandidates(): Array<() => string | null> {
-  const platform = process.platform
-  const home = os.homedir()
-
-  if (platform === 'win32') {
-    return [
-      () => path.join(home, 'AppData/Roaming/Cursor/User/skills'),
-      () => path.join(home, '.cursor/skills'),
-    ]
-  } else if (platform === 'darwin') {
-    return [
-      () => path.join(home, 'Library/Application Support/Cursor/User/skills'),
-      () => path.join(home, '.cursor/skills'),
-    ]
-  } else {
-    return [
-      () => path.join(process.env.XDG_CONFIG_HOME || path.join(home, '.config'), 'cursor/skills'),
-      () => path.join(home, '.cursor/skills'),
-    ]
-  }
-}
-
-/**
- * 获取 Windsurf 应用的候选路径
- */
-function getWindsurfCandidates(): Array<() => string | null> {
-  const platform = process.platform
-  const home = os.homedir()
-
-  if (platform === 'win32') {
-    return [
-      () => path.join(home, 'AppData/Roaming/Windsurf/skills'),
-      () => path.join(home, '.windsurf/skills'),
-    ]
-  } else if (platform === 'darwin') {
-    return [
-      () => path.join(home, 'Library/Application Support/Windsurf/skills'),
-      () => path.join(home, '.windsurf/skills'),
-    ]
-  } else {
-    return [
-      () => path.join(process.env.XDG_CONFIG_HOME || path.join(home, '.config'), 'windsurf/skills'),
-      () => path.join(home, '.windsurf/skills'),
-    ]
-  }
-}
-
-/**
- * 获取 GitHub Copilot 应用的候选路径
- */
-function getCopilotCandidates(): Array<() => string | null> {
-  const platform = process.platform
-  const home = os.homedir()
-
-  if (platform === 'win32') {
-    return [
-      () => path.join(home, '.copilot/skills'),
-      () => path.join(home, 'AppData/Local/GitHubDesktop/skills'),
-    ]
-  } else if (platform === 'darwin') {
-    return [
-      () => path.join(home, '.copilot/skills'),
-      () => path.join(home, 'Library/Application Support/GitHub Desktop/skills'),
-    ]
-  } else {
-    return [
-      () => path.join(home, '.copilot/skills'),
-      () => path.join(process.env.XDG_CONFIG_HOME || path.join(home, '.config'), 'copilot/skills'),
-    ]
-  }
-}
-
-/**
- * 获取 Cline 应用的候选路径
- */
-function getClineCandidates(): Array<() => string | null> {
-  const platform = process.platform
-  const home = os.homedir()
-
-  if (platform === 'win32') {
-    return [
-      () => path.join(home, 'AppData/Roaming/Code/User/globalStorage/saoudrizwan.claude-dev/skills'),
-      () => path.join(home, '.cline/skills'),
-    ]
-  } else if (platform === 'darwin') {
-    return [
-      () => path.join(home, 'Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/skills'),
-      () => path.join(home, '.cline/skills'),
-    ]
-  } else {
-    return [
-      () => path.join(process.env.XDG_CONFIG_HOME || path.join(home, '.config'), 'Code/User/globalStorage/saoudrizwan.claude-dev/skills'),
-      () => path.join(home, '.cline/skills'),
-    ]
-  }
-}
-
-/**
- * 获取 Continue 应用的候选路径
- */
-function getContinueCandidates(): Array<() => string | null> {
-  const platform = process.platform
-  const home = os.homedir()
-
-  if (platform === 'win32') {
-    return [
-      () => path.join(home, '.continue/skills'),
-      () => path.join(home, 'AppData/Roaming/Continue/skills'),
-    ]
-  } else if (platform === 'darwin') {
-    return [
-      () => path.join(home, '.continue/skills'),
-      () => path.join(home, 'Library/Application Support/Continue/skills'),
-    ]
-  } else {
-    return [
-      () => path.join(home, '.continue/skills'),
-      () => path.join(process.env.XDG_CONFIG_HOME || path.join(home, '.config'), 'continue/skills'),
-    ]
-  }
-}
-
-/**
- * 获取 Roo Code 应用的候选路径
- */
-function getRooCodeCandidates(): Array<() => string | null> {
-  const platform = process.platform
-  const home = os.homedir()
-
-  if (platform === 'win32') {
-    return [
-      () => path.join(home, 'AppData/Roaming/Code/User/globalStorage/rooveterinaryinc.roo-cline/skills'),
-      () => path.join(home, '.roo-code/skills'),
-    ]
-  } else if (platform === 'darwin') {
-    return [
-      () => path.join(home, 'Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/skills'),
-      () => path.join(home, '.roo-code/skills'),
-    ]
-  } else {
-    return [
-      () => path.join(process.env.XDG_CONFIG_HOME || path.join(home, '.config'), 'Code/User/globalStorage/rooveterinaryinc.roo-cline/skills'),
-      () => path.join(home, '.roo-code/skills'),
-    ]
-  }
-}
-
-/**
- * 应用定义列表（支持 10+ AI 代理）
- */
-const APP_DEFINITIONS: AppDefinition[] = [
-  {
-    name: 'Claude',
-    candidates: getClaudeCandidates(),
-  },
-  {
-    name: 'Gemini CLI',
-    candidates: getGeminiCandidates(),
-  },
-  {
-    name: 'Codex',
-    candidates: getCodexCandidates(),
-  },
-  {
-    name: 'Cursor',
-    candidates: getCursorCandidates(),
-  },
-  {
-    name: 'Windsurf',
-    candidates: getWindsurfCandidates(),
-  },
-  {
-    name: 'GitHub Copilot',
-    candidates: getCopilotCandidates(),
-  },
-  {
-    name: 'Cline',
-    candidates: getClineCandidates(),
-  },
-  {
-    name: 'Continue',
-    candidates: getContinueCandidates(),
-  },
-  {
-    name: 'Roo Code',
-    candidates: getRooCodeCandidates(),
-  },
-]
-
-/**
- * 检测应用路径
- */
-export function detectAppPath(appName: string): string | null {
-  const appDef = APP_DEFINITIONS.find(
-    (a) => a.name.toLowerCase() === appName.toLowerCase()
-  )
-
-  if (!appDef) return null
-
-  for (const getCandidate of appDef.candidates) {
-    try {
-      const candidatePath = getCandidate()
-      if (candidatePath && fs.existsSync(candidatePath)) {
-        return candidatePath
-      }
-    } catch {
-      // ignore
+  for (const { pattern, value } of envVars) {
+    if (pattern.test(resolved)) {
+      resolved = resolved.replace(pattern, value())
+      break
     }
   }
 
-  // 回退到第一个候选路径（即使不存在）
-  const fallback = appDef.candidates[0]()
-  return fallback || null
+  // ~ 替换
+  if (resolved.startsWith('~')) {
+    resolved = resolved.replace(/^~/, home)
+  }
+
+  // 规范化路径分隔符（Windows 上统一为 \）
+  return path.normalize(resolved)
+}
+
+// ─── 运行时探测（保留你原有的能力，但用注册表驱动） ───
+
+/**
+ * 检测指定 agent 的全局 skills 路径
+ * 优先用 winGlobalPath（Windows），否则用 resolveGlobalPath 解析 globalPath
+ */
+export function detectAppPath(agentId: string): string | null {
+  const def = agentRegistry[agentId]
+  if (!def) return null
+
+  // Windows 优先用专用路径
+  const resolved = resolveGlobalPath(def.globalPath)
+
+  // 如果路径已存在，直接返回
+  if (fs.existsSync(resolved)) return resolved
+
+  // 回退：尝试 projectPath 模式的全局等价路径
+  // 比如 .cursor/skills → ~/.cursor/skills
+  const fallback = path.join(os.homedir(), def.projectPath)
+  if (fs.existsSync(fallback)) return fallback
+
+  // 都不存在，返回模板解析结果（让用户知道该放哪）
+  return resolved
 }
 
 /**
- * 检测所有应用路径
+ * 检测所有 agent 的路径
  */
 export function detectAllAppPaths(): DetectedAppPath[] {
   const results: DetectedAppPath[] = []
 
-  for (const appDef of APP_DEFINITIONS) {
-    const detectedPath = detectAppPath(appDef.name)
+  for (const [id, def] of Object.entries(agentRegistry)) {
+    const detectedPath = detectAppPath(id)
     const exists = detectedPath ? fs.existsSync(detectedPath) : false
 
     results.push({
-      name: appDef.name,
+      name: def.displayName,
       skillsPath: detectedPath,
       exists,
     })
@@ -327,20 +189,17 @@ export function detectMasterDir(): string {
 
   let candidates: string[]
   if (platform === 'win32') {
-    // Windows: 用户目录或文档目录
     candidates = [
       path.join(homeDir, 'AISkills'),
       path.join(homeDir, 'Documents/AISkills'),
       `C:/Users/${os.userInfo().username}/AISkills`,
     ]
   } else if (platform === 'darwin') {
-    // macOS: 用户目录或文档目录
     candidates = [
       path.join(homeDir, 'AISkills'),
       path.join(homeDir, 'Documents/AISkills'),
     ]
   } else {
-    // Linux: .local/share 或用户目录
     candidates = [
       path.join(homeDir, '.local/share/aiskills'),
       path.join(homeDir, 'AISkills'),
@@ -385,9 +244,20 @@ export function mergeWithExistingConfig(
   })
 }
 
+/**
+ * 根据 agent ID 获取项目级 skills 目录（相对路径）
+ */
+export function getProjectSkillsDir(agentId: string): string | null {
+  const def = agentRegistry[agentId]
+  return def ? def.projectPath : null
+}
+
 export default {
+  agentRegistry,
+  resolveGlobalPath,
   detectAppPath,
   detectAllAppPaths,
   detectMasterDir,
   mergeWithExistingConfig,
+  getProjectSkillsDir,
 }

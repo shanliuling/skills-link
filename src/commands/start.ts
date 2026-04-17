@@ -79,16 +79,23 @@ async function firstTimeSetup() {
   const detectedApps = detectAllAppPaths()
   const apps = mergeWithExistingConfig(detectedApps, null)
 
+  // 只展示已检测到存在的 agent
+  const visibleApps = apps.filter((a) => a.exists)
+  const hiddenCount = apps.length - visibleApps.length
+
   logger.info(t('setup.detectedPaths'))
   logger.newline()
   logger.log(`  ${logger.successText('Master:')} ${detectedMasterDir}`)
   logger.newline()
   logger.log(`  ${logger.successText(t('setup.appsLabel'))}`)
-  for (const app of apps) {
+  for (const app of visibleApps) {
     const statusIcon = app.exists
       ? logger.successText('✓')
       : logger.warnText('○')
     logger.log(`    ${statusIcon} ${app.name.padEnd(12)} ${app.skillsPath}`)
+  }
+  if (hiddenCount > 0) {
+    logger.log(`    ${logger.dim(`... +${hiddenCount} more (run 'app list' to see all)`)}`)
   }
   logger.newline()
 
@@ -123,7 +130,9 @@ async function firstTimeSetup() {
     ])
     finalMasterDir = masterAnswer.masterDir
 
-    for (const app of finalApps) {
+    // edit 模式下只编辑已检测到存在的 agent
+    const editApps = finalApps.filter((a) => a.exists)
+    for (const app of editApps) {
       const answer = await inquirer.prompt([
         {
           type: 'input',
