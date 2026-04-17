@@ -10,6 +10,7 @@ import { spawnSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 import { logger } from './logger.js'
+import type { AppConfig } from './config.js'
 
 /**
  * 链接状态枚举
@@ -41,15 +42,6 @@ export interface LinkResult {
   backup?: string
   hint?: string
   error?: string
-}
-
-/**
- * 应用配置接口
- */
-export interface AppConfig {
-  name: string
-  skillsPath: string
-  enabled?: boolean
 }
 
 /**

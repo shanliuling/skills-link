@@ -202,7 +202,10 @@
     "syncComplete": "同步完成",
     "syncFailed": "同步失败: {error}",
     "stopped": "监听已停止",
-    "pressCtrlC": "按 Ctrl+C 停止监听"
+    "pressCtrlC": "按 Ctrl+C 停止监听",
+    "masterDirNotExist": "Master 目录不存在，请检查 config.yaml 中的 masterDir 路径",
+    "watcherError": "监听错误: {error}",
+    "syncCompleteGit": "已同步到 Git (commit: {hash})"
   },
   "rollback": {
     "title": "回滚版本",
@@ -215,7 +218,14 @@
     "selectCommit": "选择要回滚的版本:",
     "rollingBack": "正在回滚...",
     "rollbackSuccess": "已回滚到: {message}",
-    "rollbackFailed": "回滚失败: {error}"
+    "rollbackFailed": "回滚失败: {error}",
+    "masterDirNotExist": "Master 目录不存在，请检查 config.yaml 中的 masterDir 路径",
+    "confirmRollback": "确认回滚到 {hash}？",
+    "newCommitCreated": "新 commit 已创建",
+    "daysAgo": "{days}天前",
+    "hoursAgo": "{hours}小时前",
+    "minutesAgo": "{minutes}分钟前",
+    "justNow": "刚刚"
   },
   "clone": {
     "title": "克隆 Skills 仓库",
@@ -225,14 +235,23 @@
     "cloneSuccess": "克隆成功！",
     "cloneFailed": "克隆失败: {error}",
     "creatingLinks": "正在创建链接...",
-    "complete": "完成！共 {count} 个 skills"
+    "complete": "完成！共 {count} 个 skills",
+    "usingExistingConfig": "使用现有配置",
+    "defaultConfigCreated": "已创建默认配置",
+    "orConfigRemote": "或在 config.yaml 中配置 git.remote",
+    "remoteRepo": "远程仓库: {url}",
+    "targetDir": "目标目录: {path}",
+    "dirNotEmptyHint": "请先删除或移动该目录，或使用 skills-link link 创建链接"
   },
   "list": {
     "title": "本地 Skills 列表",
     "scanning": "正在扫描...",
     "noSkillsFound": "未发现本地 skills",
     "found": "发现 {count} 个 skills:",
-    "importHint": "运行 skills-link import 导入这些 skills 到 master 目录"
+    "importHint": "运行 skills-link import 导入这些 skills 到 master 目录",
+    "skillHint": "提示：Skills 是包含 SKILL.md 文件的目录",
+    "fromApp": "来自 {app}",
+    "manualCopyHint": "如果您的 skills 在非默认路径，请手动复制到 master 目录"
   },
   "init": {
     "title": "一键初始化",
@@ -242,7 +261,18 @@
     "linkComplete": "Link 完成",
     "allComplete": "全部完成！",
     "masterDirInfo": "Master 目录: {path}",
-    "skillsCount": "Skills 数量: {count}"
+    "skillsCount": "Skills 数量: {count}",
+    "configExistsSkip": "配置文件已存在，跳过 setup",
+    "creatingConfig": "创建配置文件...",
+    "writeFailed": "写入配置文件失败",
+    "configGenerated": "config.yaml 已生成",
+    "readFailed": "读取配置失败",
+    "masterDirCreated": "Master 目录已创建",
+    "initGit": "初始化 Git...",
+    "skillsFound": "找到 {total} 个 skills（去重后 {unique} 个）",
+    "imported": "已导入 {count} 个 skills",
+    "shareHint": "现在所有 AI 应用共享同一个 skills 目录",
+    "backupDir": "已备份原目录"
   },
   "app": {
     "title": "应用管理",
@@ -264,7 +294,22 @@
     "addHint": "运行 skills-link app add 添加应用",
     "appInfo": "{name} - {status}",
     "enabled": "启用",
-    "disabled": "禁用"
+    "disabled": "禁用",
+    "unknownSubcommand": "未知子命令: {subcommand}",
+    "subcommandHint": "使用 skills-link app add 或 skills-link app list",
+    "masterDirNotExist": "Master 目录不存在，请检查 config.yaml 中的 masterDir 路径",
+    "saveFailed": "保存配置失败",
+    "totalCount": "共 {count} 个应用",
+    "selectRemove": "选择要删除的应用",
+    "selectEnable": "选择要启用的应用",
+    "selectDisable": "选择要禁用的应用",
+    "appNotFound": "未找到应用: {name}",
+    "removeConfirm": "确认从配置中删除 {name}？",
+    "removeSuccess": "已从 config.yaml 中删除 {name}",
+    "enableHint": "用法: skills-link app enable <name>",
+    "disableHint": "用法: skills-link app disable <name>",
+    "enableSuccess": "{name} 已启用",
+    "disableSuccess": "{name} 已禁用"
   },
   "config": {
     "readFailed": "读取配置文件失败: {error}",

@@ -10,6 +10,7 @@ import inquirer from 'inquirer'
 import { logger } from '../core/logger.js'
 import { ensureConfig } from '../core/config.js'
 import { getCommitHistory, rollbackToCommit, isGitRepo } from '../core/git.js'
+import { t } from '../core/i18n.js'
 
 /**
  * 格式化相对时间
@@ -25,13 +26,13 @@ function formatRelativeTime(date: Date): string {
   if (days > 7) {
     return date.toLocaleDateString()
   } else if (days > 0) {
-    return `${days}天前`
+    return t('rollback.daysAgo', { days })
   } else if (hours > 0) {
-    return `${hours}小时前`
+    return t('rollback.hoursAgo', { hours })
   } else if (minutes > 0) {
-    return `${minutes}分钟前`
+    return t('rollback.minutesAgo', { minutes })
   } else {
-    return '刚刚'
+    return t('rollback.justNow')
   }
 }
 
@@ -41,36 +42,36 @@ function formatRelativeTime(date: Date): string {
 export async function runRollback() {
   // 检查配置
   const { exists, config } = ensureConfig()
-  if (!exists) return
+  if (!exists || !config) return
 
   // 检查 Git 是否启用
   if (!config.git || !config.git.enabled) {
-    logger.warn('Git 同步未启用')
-    logger.hint('在 config.yaml 中设置 git.enabled: true 以启用 Git 同步')
+    logger.warn(t('rollback.gitNotEnabled'))
+    logger.hint(t('rollback.gitNotEnabledHint'))
     return
   }
 
   // 检查 master 目录
   if (!fs.existsSync(config.masterDir)) {
-    logger.error('Master 目录不存在，请检查 config.yaml 中的 masterDir 路径')
+    logger.error(t('rollback.masterDirNotExist'))
     return
   }
 
   // 检查是否是 Git 仓库
   const isRepo = await isGitRepo(config.masterDir)
   if (!isRepo) {
-    logger.error('Master 目录不是 Git 仓库')
-    logger.hint('运行 skills-link setup 重新初始化 Git')
+    logger.error(t('rollback.notAGitRepo'))
+    logger.hint(t('rollback.runSetupHint'))
     return
   }
 
-  logger.title('Git 回滚')
+  logger.title(t('rollback.title'))
 
   // 获取提交历史
   const commits = await getCommitHistory(config.masterDir, 10)
 
   if (commits.length === 0) {
-    logger.warn('没有提交历史')
+    logger.warn(t('rollback.noCommits'))
     return
   }
 
@@ -92,7 +93,7 @@ export async function runRollback() {
     {
       type: 'list',
       name: 'selectedCommit',
-      message: '选择要回滚的版本',
+      message: t('rollback.selectCommit'),
       choices,
       pageSize: 10,
     },
@@ -103,28 +104,28 @@ export async function runRollback() {
     {
       type: 'confirm',
       name: 'confirm',
-      message: `确认回滚到 ${selectedCommit.hash}？`,
+      message: t('rollback.confirmRollback', { hash: selectedCommit.hash }),
       default: false,
     },
   ])
 
   if (!confirm) {
-    logger.info('已取消')
+    logger.info(t('common.cancelled'))
     return
   }
 
   // 执行回滚
   logger.newline()
-  logger.info('正在回滚...')
+  logger.info(t('rollback.rollingBack'))
 
   const result = await rollbackToCommit(
     config.masterDir,
-    selectedCommit.fullHash,
+    selectedCommit.hash,
   )
 
   if (result.success) {
-    logger.success(`已回滚到 ${selectedCommit.hash}`)
-    logger.success('新 commit 已创建')
+    logger.success(t('rollback.rollbackSuccess', { message: selectedCommit.hash }))
+    logger.success(t('rollback.newCommitCreated'))
   } else {
     logger.error(result.message)
   }

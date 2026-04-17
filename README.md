@@ -26,7 +26,7 @@ First run guides you through setup automatically.
 
 ## Features
 
-- 🔍 Auto-detect skills paths for **9 AI apps** (Claude, Gemini, Codex, Cursor, Windsurf, Copilot, Cline, Continue, Roo Code)
+- 🔍 Declarative agent registry supporting **41+ AI agents** (add new agents with one line)
 - 🔗 Create symbolic links without admin rights (Windows Junction/macOS/Linux symlink)
 - 📦 One-click import of existing local skills
 - 🔄 Optional Git sync to GitHub
@@ -35,17 +35,24 @@ First run guides you through setup automatically.
 - ⚡ Real-time sync - all apps share the same skills directory
 - 💾 Space efficient - single copy for all apps
 
-## Supported AI Apps
+## Supported AI Agents
 
-- Claude
-- Gemini CLI
-- Codex
-- Cursor
-- Windsurf
-- GitHub Copilot
-- Cline
-- Continue
-- Roo Code
+41+ agents supported out of the box:
+
+| | | | |
+|---|---|---|---|
+| AdaL | Amp | Antigravity | Augment |
+| Claude Code | Cline | CodeBuddy | Codex |
+| Command Code | Continue | Cortex Code | Crush |
+| Cursor | Droid | Gemini CLI | GitHub Copilot |
+| Goose | iFlow CLI | Junie | Kilo Code |
+| Kimi Code CLI | Kiro CLI | Kode | MCPJam |
+| Mistral Vibe | Mux | Neovate | OpenClaw |
+| OpenCode | OpenHands | Pi | Pochi |
+| Qoder | Qwen Code | Replit | Roo Code |
+| Trae | Trae CN | Windsurf | Zencoder |
+
+Plus a `universal` fallback for any agent not listed.
 
 ## Commands
 
@@ -61,18 +68,20 @@ First run guides you through setup automatically.
 | `clone <repo>` | Clone skills repo from GitHub    |
 | `app`          | Manage app configs               |
 
-## Path Detection
+## Path Convention
 
-Automatically adapts to non-C drives and custom locations:
+All agents follow the `~/.xxx/skills` convention (project-level: `.xxx/skills`):
 
 ```
-Detected app paths:
+Detected agent paths:
 
-  Master: C:\Users\You\AISkills
+  Master: ~/AISkills
 
-  Apps:
-    ✓ Claude     C:\Users\You\AppData\Roaming\Claude\skills
-    ○ Gemini     C:\Users\You\.gemini\skills
+  Agents:
+    ✓ Claude Code  ~/.claude/skills
+    ✓ Cursor       ~/.cursor/skills
+    ○ Gemini CLI   ~/.gemini/skills
+    ... +38 more
 
 Are these paths correct? (Yes, continue / Edit paths)
 ```
@@ -101,8 +110,8 @@ git:
   remote: https://github.com/you/skills.git
 
 apps:
-  - name: Claude
-    skillsPath: C:/Users/You/AppData/Roaming/Claude/skills
+  - name: Claude Code
+    skillsPath: ~/.claude/skills
     enabled: true
 ```
 

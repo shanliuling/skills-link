@@ -1,16 +1,19 @@
 /**
  * app.js - 应用管理命令
  *
- * 支持 app add 添加新应用，app list 列出所有应用
+ * 支持 app add/remove/enable/disable/list
  */
 
 import fs from 'fs'
 import path from 'path'
 import inquirer from 'inquirer'
 import { logger } from '../core/logger.js'
+import { t } from '../core/i18n.js'
 import {
   ensureConfig,
   addApp,
+  removeApp,
+  updateApp,
   writeConfig,
   findAppByName,
 } from '../core/config.js'
@@ -18,20 +21,27 @@ import { createJunction } from '../core/symlink.js'
 
 /**
  * 运行 app 命令
- * @param {string} subcommand - 子命令 (add / list)
- * @param {Object} options - 命令选项
  */
 export async function runApp(subcommand: string = 'list', options: Record<string, any> = {}) {
   switch (subcommand) {
     case 'add':
       await runAppAdd(options)
       break
+    case 'remove':
+      await runAppRemove(options)
+      break
+    case 'enable':
+      await runAppToggle(options.name, true)
+      break
+    case 'disable':
+      await runAppToggle(options.name, false)
+      break
     case 'list':
       await runAppList()
       break
     default:
-      logger.error(`未知子命令: ${subcommand}`)
-      logger.hint('使用 skills-link app add 或 skills-link app list')
+      logger.error(t('app.unknownSubcommand', { subcommand }))
+      logger.hint(t('app.subcommandHint'))
   }
 }
 
@@ -39,30 +49,26 @@ export async function runApp(subcommand: string = 'list', options: Record<string
  * 添加新应用
  */
 async function runAppAdd(options: Record<string, any> = {}) {
-  // 检查配置
   const { exists, config } = ensureConfig()
-  if (!exists) return
+  if (!exists || !config) return
 
-  // 检查 master 目录
   if (!fs.existsSync(config.masterDir)) {
-    logger.error('Master 目录不存在，请检查 config.yaml 中的 masterDir 路径')
+    logger.error(t('app.masterDirNotExist'))
     return
   }
 
-  logger.title('添加新应用')
+  logger.title(t('app.addTitle'))
   logger.newline()
 
-  // 询问应用信息
   const answers = await inquirer.prompt([
     {
       type: 'input',
       name: 'name',
-      message: '应用名称',
-      validate: (input) => {
-        if (!input.trim()) return '请输入应用名称'
-        // 检查是否已存在
+      message: t('app.namePrompt'),
+      validate: (input: string) => {
+        if (!input.trim()) return t('app.nameRequired')
         if (findAppByName(config, input)) {
-          return '应用名称已存在'
+          return t('app.nameExists')
         }
         return true
       },
@@ -70,27 +76,26 @@ async function runAppAdd(options: Record<string, any> = {}) {
     {
       type: 'input',
       name: 'skillsPath',
-      message: 'Skills 路径',
-      validate: (input) => {
-        if (!input.trim()) return '请输入路径'
+      message: t('app.pathPrompt'),
+      validate: (input: string) => {
+        if (!input.trim()) return t('app.pathRequired')
         return true
       },
     },
     {
       type: 'confirm',
       name: 'createLink',
-      message: '立即创建 symlink？',
+      message: t('app.createLinkPrompt'),
       default: true,
     },
     {
       type: 'confirm',
       name: 'enabled',
-      message: '启用该应用？',
+      message: t('app.enabledPrompt'),
       default: true,
     },
   ])
 
-  // 添加到配置
   const newApp = {
     name: answers.name,
     skillsPath: answers.skillsPath,
@@ -99,27 +104,25 @@ async function runAppAdd(options: Record<string, any> = {}) {
 
   const newConfig = addApp(config, newApp)
 
-  // 保存配置
   if (!writeConfig(newConfig)) {
-    logger.error('保存配置失败')
+    logger.error(t('app.saveFailed'))
     return
   }
 
-  logger.success(`已添加 ${answers.name} 到 config.yaml`)
+  logger.success(t('app.addSuccess', { name: answers.name }))
 
-  // 创建 symlink
   if (answers.createLink) {
     const parentDir = fs.existsSync(path.dirname(answers.skillsPath))
     if (!parentDir) {
-      logger.warn('路径不存在，跳过 symlink 创建')
+      logger.warn(t('app.pathNotExist'))
       return
     }
 
     const result = createJunction(config.masterDir, answers.skillsPath, false)
     if (result.success) {
-      logger.success('Symlink 已创建')
+      logger.success(t('app.linkCreated'))
       if (result.backup) {
-        logger.log(`  ${logger.dim('已备份原目录: ' + result.backup)}`)
+        logger.log(`  ${logger.dim(t('app.backupInfo', { path: result.backup }))}`)
       }
     } else {
       logger.error(result.message)
@@ -128,31 +131,138 @@ async function runAppAdd(options: Record<string, any> = {}) {
 }
 
 /**
+ * 删除应用
+ */
+async function runAppRemove(options: { name?: string } = {}) {
+  const { exists, config } = ensureConfig()
+  if (!exists || !config) return
+
+  let appName = options.name
+
+  if (!appName) {
+    if (!config.apps || config.apps.length === 0) {
+      logger.warn(t('app.noApps'))
+      return
+    }
+
+    const { selected } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'selected',
+        message: t('app.selectRemove'),
+        choices: config.apps.map((app) => ({
+          name: `${app.name} (${app.skillsPath})`,
+          value: app.name,
+        })),
+      },
+    ])
+    appName = selected
+  }
+
+  const app = findAppByName(config, appName!)
+  if (!app) {
+    logger.error(t('app.appNotFound', { name: appName! }))
+    return
+  }
+
+  const { confirm } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'confirm',
+      message: t('app.removeConfirm', { name: app.name }),
+      default: false,
+    },
+  ])
+
+  if (!confirm) {
+    logger.info(t('common.cancelled'))
+    return
+  }
+
+  const newConfig = removeApp(config, app.name)
+
+  if (!writeConfig(newConfig)) {
+    logger.error(t('app.saveFailed'))
+    return
+  }
+
+  logger.success(t('app.removeSuccess', { name: app.name }))
+}
+
+/**
+ * 启用/禁用应用
+ */
+async function runAppToggle(name: string | undefined, enabled: boolean) {
+  const { exists, config } = ensureConfig()
+  if (!exists || !config) return
+
+  let appName = name
+
+  if (!appName) {
+    if (!config.apps || config.apps.length === 0) {
+      logger.warn(t('app.noApps'))
+      return
+    }
+
+    const { selected } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'selected',
+        message: enabled ? t('app.selectEnable') : t('app.selectDisable'),
+        choices: config.apps.map((app) => ({
+          name: `${app.name} (${app.skillsPath})`,
+          value: app.name,
+        })),
+      },
+    ])
+    appName = selected
+  }
+
+  const app = findAppByName(config, appName!)
+  if (!app) {
+    logger.error(t('app.appNotFound', { name: appName! }))
+    return
+  }
+
+  const newConfig = updateApp(config, app.name, { enabled })
+
+  if (!writeConfig(newConfig)) {
+    logger.error(t('app.saveFailed'))
+    return
+  }
+
+  logger.success(
+    enabled
+      ? t('app.enableSuccess', { name: app.name })
+      : t('app.disableSuccess', { name: app.name }),
+  )
+}
+
+/**
  * 列出所有应用
  */
 async function runAppList() {
-  // 检查配置
   const { exists, config } = ensureConfig()
-  if (!exists) return
+  if (!exists || !config) return
 
-  logger.title('已配置应用')
+  logger.title(t('app.listTitle'))
   logger.newline()
 
   if (!config.apps || config.apps.length === 0) {
-    logger.warn('没有配置任何应用')
-    logger.hint('运行 skills-link app add 添加应用')
+    logger.warn(t('app.noApps'))
+    logger.hint(t('app.addHint'))
     return
   }
 
   for (const app of config.apps) {
     const status =
-      app.enabled !== false ? logger.successText('启用') : logger.dim('禁用')
+      app.enabled !== false ? logger.successText(t('app.enabled')) : logger.dim(t('app.disabled'))
     logger.log(`  ${app.name.padEnd(15)} ${status}`)
     logger.log(`    ${logger.dim(app.skillsPath)}`)
   }
 
   logger.newline()
-  logger.log(`共 ${config.apps.length} 个应用`)
+  logger.log(t('app.totalCount', { count: config.apps.length }))
 }
 
 export default { runApp }

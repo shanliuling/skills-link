@@ -202,7 +202,10 @@
     "syncComplete": "Sync complete",
     "syncFailed": "Sync failed: {error}",
     "stopped": "Watcher stopped",
-    "pressCtrlC": "Press Ctrl+C to stop watching"
+    "pressCtrlC": "Press Ctrl+C to stop watching",
+    "masterDirNotExist": "Master directory does not exist, check masterDir in config.yaml",
+    "watcherError": "Watcher error: {error}",
+    "syncCompleteGit": "Synced to Git (commit: {hash})"
   },
   "rollback": {
     "title": "Rollback Version",
@@ -215,7 +218,14 @@
     "selectCommit": "Select version to rollback to:",
     "rollingBack": "Rolling back...",
     "rollbackSuccess": "Rolled back to: {message}",
-    "rollbackFailed": "Rollback failed: {error}"
+    "rollbackFailed": "Rollback failed: {error}",
+    "masterDirNotExist": "Master directory does not exist, check masterDir in config.yaml",
+    "confirmRollback": "Confirm rollback to {hash}?",
+    "newCommitCreated": "New commit created",
+    "daysAgo": "{days} days ago",
+    "hoursAgo": "{hours} hours ago",
+    "minutesAgo": "{minutes} minutes ago",
+    "justNow": "Just now"
   },
   "clone": {
     "title": "Clone Skills Repository",
@@ -225,14 +235,23 @@
     "cloneSuccess": "Clone successful!",
     "cloneFailed": "Clone failed: {error}",
     "creatingLinks": "Creating links...",
-    "complete": "Complete! {count} skills"
+    "complete": "Complete! {count} skills",
+    "usingExistingConfig": "Using existing config",
+    "defaultConfigCreated": "Default config created",
+    "orConfigRemote": "Or set git.remote in config.yaml",
+    "remoteRepo": "Remote: {url}",
+    "targetDir": "Target: {path}",
+    "dirNotEmptyHint": "Delete or move the directory first, or run skills-link link to create links"
   },
   "list": {
     "title": "Local Skills List",
     "scanning": "Scanning...",
     "noSkillsFound": "No local skills found",
     "found": "Found {count} skills:",
-    "importHint": "Run skills-link import to import these skills to master directory"
+    "importHint": "Run skills-link import to import these skills to master directory",
+    "skillHint": "Hint: Skills are directories containing a SKILL.md file",
+    "fromApp": "from {app}",
+    "manualCopyHint": "If your skills are in non-default paths, please manually copy to the master directory"
   },
   "init": {
     "title": "One-click Init",
@@ -242,7 +261,18 @@
     "linkComplete": "Link complete",
     "allComplete": "All complete!",
     "masterDirInfo": "Master directory: {path}",
-    "skillsCount": "Skills count: {count}"
+    "skillsCount": "Skills count: {count}",
+    "configExistsSkip": "Config file already exists, skipping setup",
+    "creatingConfig": "Creating config file...",
+    "writeFailed": "Failed to write config file",
+    "configGenerated": "config.yaml generated",
+    "readFailed": "Failed to read config",
+    "masterDirCreated": "Master directory created",
+    "initGit": "Initializing Git...",
+    "skillsFound": "Found {total} skills ({unique} after dedup)",
+    "imported": "Imported {count} skills",
+    "shareHint": "All AI apps now share the same skills directory",
+    "backupDir": "Original directory backed up"
   },
   "app": {
     "title": "App Management",
@@ -264,7 +294,22 @@
     "addHint": "Run skills-link app add to add apps",
     "appInfo": "{name} - {status}",
     "enabled": "enabled",
-    "disabled": "disabled"
+    "disabled": "disabled",
+    "unknownSubcommand": "Unknown subcommand: {subcommand}",
+    "subcommandHint": "Use skills-link app add or skills-link app list",
+    "masterDirNotExist": "Master directory does not exist, check masterDir in config.yaml",
+    "saveFailed": "Failed to save config",
+    "totalCount": "Total: {count} apps",
+    "selectRemove": "Select app to remove",
+    "selectEnable": "Select app to enable",
+    "selectDisable": "Select app to disable",
+    "appNotFound": "App not found: {name}",
+    "removeConfirm": "Remove {name} from config?",
+    "removeSuccess": "Removed {name} from config.yaml",
+    "enableHint": "Usage: skills-link app enable <name>",
+    "disableHint": "Usage: skills-link app disable <name>",
+    "enableSuccess": "{name} enabled",
+    "disableSuccess": "{name} disabled"
   },
   "config": {
     "readFailed": "Failed to read config file: {error}",

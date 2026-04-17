@@ -6,10 +6,9 @@
 
 import fs from 'fs'
 import path from 'path'
-import os from 'os'
 import yaml from 'js-yaml'
 import { logger } from './logger.js'
-import { detectMasterDir } from './path-detect.js'
+import { detectMasterDir, agentRegistry, resolveGlobalPath } from './path-detect.js'
 import { t } from './i18n.js'
 
 const JSON_SCHEMA = yaml.JSON_SCHEMA
@@ -62,26 +61,21 @@ export interface ConfigValidationResult {
 }
 
 /**
+ * 默认启用的 agent ID 列表（setup 时自动写入 config）
+ * 其他 agent 用户可手动添加或通过 link 命令启用
+ */
+const DEFAULT_ENABLED_AGENTS = ['claude', 'gemini-cli', 'codex']
+
+/**
  * 获取默认配置
+ * 从注册表自动生成，不再为每个 agent 硬编码路径
  */
 export function getDefaultConfig(): GlobalConfig {
-  const homeDir = os.homedir()
-  const platform = process.platform
-
-  // 根据平台生成 Claude 默认路径
-  let claudePath: string
-  if (platform === 'win32') {
-    claudePath = path.join(homeDir, 'AppData/Roaming/Claude/skills')
-  } else if (platform === 'darwin') {
-    claudePath = path.join(homeDir, 'Library/Application Support/Claude/skills')
-  } else {
-    // Linux
-    claudePath = path.join(process.env.XDG_CONFIG_HOME || path.join(homeDir, '.config'), 'claude/skills')
-  }
-
-  // Gemini 和 Codex 在所有平台都使用 ~/.xxx
-  const geminiPath = path.join(homeDir, '.gemini/skills')
-  const codexPath = path.join(homeDir, '.codex/skills')
+  const apps: AppConfig[] = Object.entries(agentRegistry).map(([id, def]) => ({
+    name: def.displayName,
+    skillsPath: resolveGlobalPath(def.globalPath),
+    enabled: DEFAULT_ENABLED_AGENTS.includes(id),
+  }))
 
   return {
     masterDir: detectMasterDir(),
@@ -95,23 +89,7 @@ export function getDefaultConfig(): GlobalConfig {
       enabled: false,
       debounceMs: 3000,
     },
-    apps: [
-      {
-        name: 'Claude',
-        skillsPath: claudePath,
-        enabled: true,
-      },
-      {
-        name: 'Gemini CLI',
-        skillsPath: geminiPath,
-        enabled: true,
-      },
-      {
-        name: 'Codex',
-        skillsPath: codexPath,
-        enabled: true,
-      },
-    ],
+    apps,
   }
 }
 
@@ -273,6 +251,17 @@ export function updateApp(config: GlobalConfig, name: string, updates: Partial<A
   return newConfig
 }
 
+/**
+ * 删除应用
+ */
+export function removeApp(config: GlobalConfig, name: string): GlobalConfig {
+  const newConfig = { ...config }
+  newConfig.apps = newConfig.apps.filter(
+    (app) => app.name.toLowerCase() !== name.toLowerCase(),
+  )
+  return newConfig
+}
+
 export default {
   getDefaultConfig,
   getConfigPath,
@@ -285,4 +274,5 @@ export default {
   findAppByName,
   addApp,
   updateApp,
+  removeApp,
 }

@@ -23,7 +23,7 @@ skills-link
 
 ## 功能
 
-- 🔍 自动探测 **9 个 AI 应用**的 skills 路径（Claude, Gemini, Codex, Cursor, Windsurf, Copilot, Cline, Continue, Roo Code）
+- 🔍 声明式 agent 注册表，支持 **41+ AI agent**（一行代码即可添加新 agent）
 - 🔗 创建符号链接，无需管理员权限（Windows Junction/macOS/Linux symlink）
 - 📦 一键导入本地已有 skills
 - 🔄 可选 Git 同步到 GitHub
@@ -32,17 +32,24 @@ skills-link
 - ⚡ 实时同步 - 所有应用共享同一个 skills 目录
 - 💾 节省空间 - 所有应用共用一份 skills
 
-## 支持的 AI 应用
+## 支持的 AI Agent
 
-- Claude
-- Gemini CLI
-- Codex
-- Cursor
-- Windsurf
-- GitHub Copilot
-- Cline
-- Continue
-- Roo Code
+开箱即用支持 41+ agent：
+
+| | | | |
+|---|---|---|---|
+| AdaL | Amp | Antigravity | Augment |
+| Claude Code | Cline | CodeBuddy | Codex |
+| Command Code | Continue | Cortex Code | Crush |
+| Cursor | Droid | Gemini CLI | GitHub Copilot |
+| Goose | iFlow CLI | Junie | Kilo Code |
+| Kimi Code CLI | Kiro CLI | Kode | MCPJam |
+| Mistral Vibe | Mux | Neovate | OpenClaw |
+| OpenCode | OpenHands | Pi | Pochi |
+| Qoder | Qwen Code | Replit | Roo Code |
+| Trae | Trae CN | Windsurf | Zencoder |
+
+另有 `universal` 通用回退，适用于未列出的 agent。
 
 ## 命令
 
@@ -58,18 +65,20 @@ skills-link
 | `clone <repo>`  | 从 GitHub 克隆 skills 仓库        |
 | `app`           | 管理应用配置                      |
 
-## 路径探测
+## 路径约定
 
-自动适配非 C 盘和自定义安装位置：
+所有 agent 遵循 `~/.xxx/skills` 约定（项目级：`.xxx/skills`）：
 
 ```
 检测到以下路径：
 
-  Master: C:\Users\You\AISkills
+  Master: ~/AISkills
 
-  应用：
-    ✓ Claude     C:\Users\You\AppData\Roaming\Claude\skills
-    ○ Gemini     C:\Users\You\.gemini\skills
+  Agent：
+    ✓ Claude Code  ~/.claude/skills
+    ✓ Cursor       ~/.cursor/skills
+    ○ Gemini CLI   ~/.gemini/skills
+    ... +38 more
 
 路径正确吗？(是，继续 / 编辑路径)
 ```
@@ -98,8 +107,8 @@ git:
   remote: https://github.com/you/skills.git
 
 apps:
-  - name: Claude
-    skillsPath: C:/Users/You/AppData/Roaming/Claude/skills
+  - name: Claude Code
+    skillsPath: ~/.claude/skills
     enabled: true
 ```
 

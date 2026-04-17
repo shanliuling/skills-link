@@ -111,9 +111,10 @@ program
   .action((repo) => runClone({ repo }))
 
 program
-  .command('app [subcommand]')
+  .command('app [subcommand] [name]')
   .description(t('cli.commands.app'))
-  .action((subcommand) => runApp(subcommand || 'list'))
+  .option('-n, --name <name>', 'App name')
+  .action((subcommand, name, options) => runApp(subcommand || 'list', { ...options, name: name || options.name }))
 
 program
   .command('reset')

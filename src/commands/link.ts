@@ -17,7 +17,7 @@ export async function runLink(options: { app?: string; dryRun?: boolean } = {}) 
   const { app: appName, dryRun = false } = options
 
   const { exists, config } = ensureConfig()
-  if (!exists) return
+  if (!exists || !config) return
 
   if (!fs.existsSync(config.masterDir)) {
     logger.error(t('link.masterDirNotExist'))

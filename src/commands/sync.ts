@@ -15,7 +15,7 @@ export async function runSync(options: { message?: string } = {}) {
   const { message } = options
 
   const { exists, config } = ensureConfig()
-  if (!exists) return
+  if (!exists || !config) return
 
   if (!config.git || !config.git.enabled) {
     logger.warn(t('sync.gitNotEnabled'))

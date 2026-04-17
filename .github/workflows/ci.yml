@@ -79,7 +79,7 @@ jobs:
       id: check_version
       run: |
         PACKAGE_VERSION=$(node -p "require('./package.json').version")
-        NPM_VERSION=$(npm view skills-sync version 2>/dev/null || echo "0.0.0")
+        NPM_VERSION=$(npm view skills-link version 2>/dev/null || echo "0.0.0")
 
         if [ "$PACKAGE_VERSION" != "$NPM_VERSION" ]; then
           echo "need_publish=true" >> $GITHUB_OUTPUT

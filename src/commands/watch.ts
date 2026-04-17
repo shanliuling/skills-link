@@ -10,9 +10,10 @@ import chokidar from 'chokidar'
 import { logger } from '../core/logger.js'
 import { ensureConfig } from '../core/config.js'
 import { sync, pushToRemote, hasRemote } from '../core/git.js'
+import { t } from '../core/i18n.js'
 
 // 防抖定时器
-let debounceTimer = null
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 /**
  * 运行 watch 命令
@@ -20,19 +21,19 @@ let debounceTimer = null
 export async function runWatch() {
   // 检查配置
   const { exists, config } = ensureConfig()
-  if (!exists) return
+  if (!exists || !config) return
 
   // 检查 master 目录
   if (!fs.existsSync(config.masterDir)) {
-    logger.error('Master 目录不存在，请检查 config.yaml 中的 masterDir 路径')
+    logger.error(t('watch.masterDirNotExist'))
     return
   }
 
   const debounceMs = config.watch?.debounceMs || 3000
   const gitEnabled = config.git?.enabled
 
-  logger.title('文件监听')
-  logger.info(`监听中: ${config.masterDir}`)
+  logger.title(t('watch.title'))
+  logger.info(t('watch.watching', { path: config.masterDir }))
   logger.newline()
 
   // 创建监听器
@@ -47,11 +48,11 @@ export async function runWatch() {
   })
 
   // 变更事件处理
-  const handleChange = async (event, filePath) => {
+  const handleChange = async (event: string, filePath: string) => {
     const relativePath = filePath
       .replace(config.masterDir, '')
       .replace(/^[\/\\]/, '')
-    logger.log(`  变更: ${relativePath}`)
+    logger.log(t('watch.changeDetected', { file: relativePath }))
 
     // 防抖
     if (debounceTimer) {
@@ -73,13 +74,13 @@ export async function runWatch() {
 
   // 错误处理
   watcher.on('error', (error) => {
-    logger.error(`监听错误: ${error.message}`)
+    logger.error(t('watch.watcherError', { error: error.message }))
   })
 
   // 退出处理
   const handleExit = () => {
     logger.newline()
-    logger.info('已停止监听')
+    logger.info(t('watch.stopped'))
     watcher.close()
     process.exit(0)
   }
@@ -88,7 +89,7 @@ export async function runWatch() {
   process.on('SIGTERM', handleExit)
 
   // 保持进程运行
-  logger.hint('按 Ctrl+C 停止监听')
+  logger.hint(t('watch.pressCtrlC'))
 }
 
 /**
@@ -96,10 +97,10 @@ export async function runWatch() {
  * @param {Object} config - 配置对象
  * @param {boolean} gitEnabled - Git 是否启用
  */
-async function performSync(config, gitEnabled) {
+async function performSync(config: import('../core/config.js').GlobalConfig, gitEnabled: boolean) {
   if (!gitEnabled) {
     // Git 未启用，只打印日志
-    logger.log(`  ${logger.dim('○')} 变更已记录（Git 未启用，跳过同步）`)
+    logger.log(t('watch.gitNotEnabled'))
     return
   }
 
@@ -116,7 +117,7 @@ async function performSync(config, gitEnabled) {
     return
   }
 
-  logger.success(`已同步到 Git (commit: ${result.hash})`)
+  logger.success(t('watch.syncCompleteGit', { hash: result.hash }))
 
   // 推送
   if (config.git?.autoPush) {

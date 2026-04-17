@@ -14,6 +14,7 @@ import inquirer from 'inquirer'
 import { logger } from '../core/logger.js'
 import { readConfig, GlobalConfig, getConfigPath } from '../core/config.js'
 import { isSymlink, getSymlinkTarget, removeSymlink } from '../core/symlink.js'
+import { countSkills } from '../core/scanner.js'
 import { t } from '../core/i18n.js'
 
 /**
@@ -276,22 +277,6 @@ function executeReset(changes: DetectedChanges) {
     } catch (error) {
       logger.error(`${t('reset.deleteFailed')}: ${(error as Error).message}`)
     }
-  }
-}
-
-/**
- * 统计 skills 数量
- */
-function countSkills(masterDir: string): number {
-  try {
-    const entries = fs.readdirSync(masterDir, { withFileTypes: true })
-    return entries.filter((entry) => {
-      if (!entry.isDirectory()) return false
-      const skillFile = path.join(masterDir, entry.name, 'SKILL.md')
-      return fs.existsSync(skillFile)
-    }).length
-  } catch {
-    return 0
   }
 }
 

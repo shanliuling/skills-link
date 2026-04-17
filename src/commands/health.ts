@@ -15,7 +15,7 @@ import { t } from '../core/i18n.js'
 
 export async function runHealth() {
   const { exists, config } = ensureConfig()
-  if (!exists) return
+  if (!exists || !config) return
 
   logger.title(t('health.title'))
   logger.newline()

@@ -11,9 +11,9 @@ import path from 'path'
 import inquirer from 'inquirer'
 import { logger } from '../core/logger.js'
 import { ensureConfig } from '../core/config.js'
-import { scanSkills, copySkill } from '../core/scanner.js'
+import { scanSkills, copySkill, SkillInfo } from '../core/scanner.js'
 import { t } from '../core/i18n.js'
-import { getSkillModTime } from '../core/utils.js'
+import { getSkillModTime, groupAndDedupSkills } from '../core/utils.js'
 
 function groupSkillsByName(skills: any[]): Record<string, any[]> {
   const groups: Record<string, any[]> = {}
@@ -48,7 +48,7 @@ export async function runImport(options: { yes?: boolean } = {}) {
   const { yes = false } = options
 
   const { exists, config } = ensureConfig()
-  if (!exists) return
+  if (!exists || !config) return
 
   if (!fs.existsSync(config.masterDir)) {
     if (yes) {
@@ -131,13 +131,7 @@ export async function runImport(options: { yes?: boolean } = {}) {
       logger.newline()
     }
   } else {
-    for (const name of Object.keys(groups)) {
-      const duplicates = groups[name]
-      duplicates.sort(
-        (a, b) => getSkillModTime(b.path).getTime() - getSkillModTime(a.path).getTime(),
-      )
-      finalSkills.push(duplicates[0])
-    }
+    finalSkills = groupAndDedupSkills(skills)
   }
 
   const uniqueNames = Object.keys(groups).filter(
@@ -180,8 +174,8 @@ export async function runImport(options: { yes?: boolean } = {}) {
     }
   }
 
-  const existingSkills = []
-  const newSkills = []
+  const existingSkills: SkillInfo[] = []
+  const newSkills: SkillInfo[] = []
 
   for (const skill of finalSkills) {
     const destPath = path.join(config.masterDir, skill.name)

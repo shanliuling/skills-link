@@ -3,29 +3,29 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { detectAppPath, detectAllAppPaths, detectMasterDir } from './path-detect.js'
+import { detectAppPath, detectAllAppPaths, detectMasterDir, agentRegistry, resolveGlobalPath, getProjectSkillsDir } from './path-detect.js'
 import path from 'path'
 import os from 'os'
 
 describe('path-detect', () => {
-  it('should return path for known apps', () => {
-    const claudePath = detectAppPath('Claude')
+  it('should return path for known agents by id', () => {
+    const claudePath = detectAppPath('claude')
     expect(claudePath).toBeDefined()
     expect(typeof claudePath).toBe('string')
   })
 
-  it('should return null for unknown apps', () => {
-    const unknownPath = detectAppPath('UnknownApp')
+  it('should return null for unknown agents', () => {
+    const unknownPath = detectAppPath('nonexistent-agent')
     expect(unknownPath).toBeNull()
   })
 
-  it('should detect all app paths', () => {
+  it('should detect all agent paths from registry', () => {
     const apps = detectAllAppPaths()
 
     expect(Array.isArray(apps)).toBe(true)
-    expect(apps.length).toBeGreaterThan(0)
+    // 注册表里有多少个 agent 就应该有多少个结果
+    expect(apps.length).toBe(Object.keys(agentRegistry).length)
 
-    // 检查返回的应用对象结构
     apps.forEach(app => {
       expect(app).toHaveProperty('name')
       expect(app).toHaveProperty('skillsPath')
@@ -45,36 +45,39 @@ describe('path-detect', () => {
   it('should return correct master directory for platform', () => {
     const masterDir = detectMasterDir()
 
-    // 根据平台检查路径
     if (process.platform === 'win32') {
       expect(masterDir).toMatch(/AISkills$/)
     } else if (process.platform === 'darwin') {
       expect(masterDir).toMatch(/AISkills$/)
     } else {
-      // Linux
       expect(masterDir).toMatch(/aiskills$/i)
     }
   })
 
-  it('should support case-insensitive app name matching', () => {
-    const path1 = detectAppPath('Claude')
-    const path2 = detectAppPath('claude')
-    const path3 = detectAppPath('CLAUDE')
-
-    // 所有大小写形式应该返回相同的路径
-    expect(path1).toBe(path2)
-    expect(path2).toBe(path3)
+  it('should resolve ~ to home directory', () => {
+    const result = resolveGlobalPath('~/.cursor/skills')
+    expect(result).toBe(path.join(os.homedir(), '.cursor/skills'))
   })
 
-  it('should have multiple supported apps', () => {
-    const apps = detectAllAppPaths()
+  it('should resolve $XDG_CONFIG_HOME', () => {
+    const result = resolveGlobalPath('$XDG_CONFIG_HOME/goose/skills')
+    const expected = process.env.XDG_CONFIG_HOME
+      ? path.join(process.env.XDG_CONFIG_HOME, 'goose/skills')
+      : path.join(os.homedir(), '.config/goose/skills')
+    expect(result).toBe(expected)
+  })
 
-    // 应该至少支持 3 个应用（Claude, Gemini CLI, Codex 是基础的）
-    expect(apps.length).toBeGreaterThanOrEqual(3)
+  it('should return project skills dir for known agent', () => {
+    expect(getProjectSkillsDir('cursor')).toBe('.cursor/skills')
+    expect(getProjectSkillsDir('claude')).toBe('.claude/skills')
+  })
 
-    const appNames = apps.map(a => a.name)
-    expect(appNames).toContain('Claude')
-    expect(appNames).toContain('Gemini CLI')
-    expect(appNames).toContain('Codex')
+  it('should return null for unknown agent project dir', () => {
+    expect(getProjectSkillsDir('nonexistent')).toBeNull()
+  })
+
+  it('should support all 41 agents in registry', () => {
+    const count = Object.keys(agentRegistry).length
+    expect(count).toBeGreaterThanOrEqual(41)
   })
 })

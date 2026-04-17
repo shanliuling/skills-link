@@ -20,6 +20,7 @@ import {
   detectMasterDir,
   mergeWithExistingConfig,
 } from '../core/path-detect.js'
+import { t } from '../core/i18n.js'
 
 /**
  * 运行 clone 命令
@@ -29,13 +30,13 @@ import {
 export async function runClone(options: { repo?: string } = {}) {
   const { repo } = options
 
-  logger.title('从 GitHub 克隆 Skills')
+  logger.title(t('clone.title'))
   logger.newline()
 
   // 检查是否已有配置
-  let config
-  let masterDir
-  let remoteUrl = repo
+  let config: import('../core/config.js').GlobalConfig | null
+  let masterDir: string | undefined
+  let remoteUrl: string | undefined = repo
 
   if (configExists()) {
     config = readConfig()
@@ -45,7 +46,7 @@ export async function runClone(options: { repo?: string } = {}) {
         remoteUrl = config.git.remote
       }
     }
-    logger.info('使用现有配置')
+    logger.info(t('clone.usingExistingConfig'))
   } else {
     // 创建默认配置
     const defaultConfig = getDefaultConfig()
@@ -65,41 +66,46 @@ export async function runClone(options: { repo?: string } = {}) {
     if (!remoteUrl && config.git?.remote) {
       remoteUrl = config.git.remote
     }
-    logger.success('已创建默认配置')
+    logger.success(t('clone.defaultConfigCreated'))
   }
 
   // 检查是否有远程仓库 URL
-  if (!remoteUrl) {
-    logger.error('没有指定远程仓库 URL')
-    logger.hint('使用: skills-link clone <repo-url>')
-    logger.hint('或在 config.yaml 中配置 git.remote')
+  if (!config || !masterDir) {
+    logger.error(t('clone.noRepoUrl'))
     return
   }
 
-  logger.info(`远程仓库: ${remoteUrl}`)
-  logger.info(`目标目录: ${masterDir}`)
+  if (!remoteUrl) {
+    logger.error(t('clone.noRepoUrl'))
+    logger.hint(t('clone.usageHint'))
+    logger.hint(t('clone.orConfigRemote'))
+    return
+  }
+
+  logger.info(t('clone.remoteRepo', { url: remoteUrl }))
+  logger.info(t('clone.targetDir', { path: masterDir }))
   logger.newline()
 
   // 检查 master 目录是否已存在
   if (fs.existsSync(masterDir)) {
     const entries = fs.readdirSync(masterDir)
     if (entries.length > 0) {
-      logger.error(`目录 ${masterDir} 已存在且不为空`)
-      logger.hint('请先删除或移动该目录，或使用 skills-link link 创建链接')
+      logger.error(t('start.dirExistsNotEmpty', { path: masterDir }))
+      logger.hint(t('clone.dirNotEmptyHint'))
       return
     }
   }
 
   // 克隆仓库
-  logger.info('正在克隆...')
+  logger.info(t('start.cloning'))
   const result = await cloneRepo(remoteUrl, masterDir)
 
   if (!result.success) {
-    logger.error(`克隆失败: ${result.message}`)
+    logger.error(t('clone.cloneFailed', { error: result.message }))
     return
   }
 
-  logger.success('克隆完成！')
+  logger.success(t('clone.cloneSuccess'))
   logger.newline()
 
   // 统计 skills 数量
@@ -111,41 +117,41 @@ export async function runClone(options: { repo?: string } = {}) {
         fs.existsSync(path.join(masterDir, entry.name, 'SKILL.md')),
     )
 
-  logger.success(`共有 ${skillDirs.length} 个 skills`)
+  logger.success(t('clone.complete', { count: skillDirs.length }))
   logger.newline()
 
   // 创建 Junction 链接
-  logger.info('创建符号链接...')
+  logger.info(t('clone.creatingLinks'))
   const enabledApps = config.apps?.filter((app) => app.enabled !== false) || []
 
   let linkCount = 0
   for (const app of enabledApps) {
     const parentDir = path.dirname(app.skillsPath)
     if (!fs.existsSync(parentDir)) {
-      logger.log(`  ${logger.dim('○')} ${app.name} 未安装，跳过`)
+      logger.log(`  ${logger.dim('○')} ${t('start.appNotInstalled', { name: app.name })}`)
       continue
     }
 
     const linkResult = createJunction(masterDir, app.skillsPath, false)
     if (linkResult.success) {
-      logger.success(`${app.name} → ${app.skillsPath}`)
+      logger.success(t('link.linkSuccess', { name: app.name, path: app.skillsPath }))
       if (linkResult.backup) {
-        logger.log(`    ${logger.dim('已备份原目录')}`)
+        logger.log(`    ${logger.dim(t('init.backupDir'))}`)
       }
       linkCount++
     } else {
-      logger.error(`${app.name} 创建失败`)
+      logger.error(t('start.appLinkFailed', { name: app.name }))
     }
   }
 
   if (linkCount > 0) {
-    logger.success(`已为 ${linkCount} 个应用创建链接`)
+    logger.success(t('start.linksCreated', { count: linkCount }))
   }
 
   // 完成
   logger.newline()
-  logger.success('克隆完成！')
-  logger.hint('现在所有 AI 应用共享同一个 skills 目录')
+  logger.success(t('clone.cloneSuccess'))
+  logger.hint(t('init.shareHint'))
 }
 
 export default { runClone }

@@ -11,6 +11,7 @@ import os from 'os'
 import { glob } from 'glob'
 import { logger } from './logger.js'
 import { t } from './i18n.js'
+import { agentRegistry, resolveGlobalPath } from './path-detect.js'
 
 /**
  * Skill 信息接口
@@ -48,17 +49,14 @@ export interface ListSkillItem {
 }
 
 /**
- * 默认搜索路径
+ * 默认搜索路径（从 agent 注册表自动生成）
  */
 export function getDefaultSearchPaths(): string[] {
-  const home = os.homedir()
-
-  return [
-    path.join(home, '.agents', 'skills'), // skills.sh 下载目录
-    path.join(home, '.claude'),
-    path.join(home, '.gemini'),
-    path.join(home, '.codex'),
-  ]
+  const paths = new Set<string>()
+  for (const def of Object.values(agentRegistry)) {
+    paths.add(resolveGlobalPath(def.globalPath))
+  }
+  return [...paths]
 }
 
 /**
@@ -169,21 +167,19 @@ function isBuiltInSkill(skillPath: string): boolean {
 }
 
 /**
- * 推断 skill 来源应用
+ * 推断 skill 来源应用（从 agent 注册表自动匹配）
  */
 function inferSourceApp(skillPath: string): string {
   const normalizedPath = skillPath.toLowerCase().replace(/\\/g, '/')
 
-  if (normalizedPath.includes('.claude')) return 'Claude'
-  if (normalizedPath.includes('.gemini')) return 'Gemini CLI'
-  if (normalizedPath.includes('.codex')) return 'Codex'
-  if (normalizedPath.includes('roaming')) return 'AppData/Roaming'
-  if (normalizedPath.includes('local')) return 'AppData/Local'
-  if (normalizedPath.includes('desktop')) return 'Desktop'
-  if (normalizedPath.includes('documents')) return 'Documents'
-  if (normalizedPath.includes('downloads')) return 'Downloads'
+  for (const [id, def] of Object.entries(agentRegistry)) {
+    const globalPath = resolveGlobalPath(def.globalPath).toLowerCase().replace(/\\/g, '/')
+    if (normalizedPath.includes(globalPath)) {
+      return def.displayName
+    }
+  }
 
-  return '未知'
+  return 'Unknown'
 }
 
 /**

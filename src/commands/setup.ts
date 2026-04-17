@@ -73,16 +73,23 @@ export async function runSetup() {
       : null,
   )
 
+  // 只展示已检测到存在的 agent，其余折叠显示数量
+  const visibleApps = apps.filter((a) => a.exists)
+  const hiddenCount = apps.length - visibleApps.length
+
   logger.info(t('setup.detectedPaths'))
   logger.newline()
   logger.log(`  ${logger.successText('Master:')} ${detectedMasterDir}`)
   logger.newline()
   logger.log(`  ${logger.successText(t('setup.appsLabel'))}`)
-  for (const app of apps) {
+  for (const app of visibleApps) {
     const statusIcon = app.exists
       ? logger.successText('✓')
       : logger.warnText('○')
     logger.log(`    ${statusIcon} ${app.name.padEnd(12)} ${app.skillsPath}`)
+  }
+  if (hiddenCount > 0) {
+    logger.log(`    ${logger.dim(`... +${hiddenCount} more (run 'app list' to see all)`)}`)
   }
   logger.newline()
 
@@ -117,7 +124,9 @@ export async function runSetup() {
     ])
     finalMasterDir = masterAnswer.masterDir
 
-    for (const app of finalApps) {
+    // edit 模式下只编辑已检测到存在的 agent，避免逐个输入 41 个路径
+    const editApps = finalApps.filter((a) => a.exists)
+    for (const app of editApps) {
       const answer = await inquirer.prompt([
         {
           type: 'input',
@@ -174,7 +183,7 @@ export async function runSetup() {
     },
     apps: finalApps.map((app) => ({
       name: app.name,
-      skillsPath: app.skillsPath,
+      skillsPath: app.skillsPath || '',
       enabled: app.enabled !== false,
     })),
   }
@@ -184,7 +193,7 @@ export async function runSetup() {
       fs.mkdirSync(config.masterDir, { recursive: true })
       logger.success(t('setup.masterDirCreated', { path: config.masterDir }))
     } catch (error) {
-      logger.error(t('setup.masterDirCreateFailed', { error: error.message }))
+      logger.error(t('setup.masterDirCreateFailed', { error: (error as Error).message }))
       return
     }
   } else {

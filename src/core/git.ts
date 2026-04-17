@@ -124,12 +124,26 @@ export async function commitChanges(
 }
 
 /**
+ * 获取当前分支名
+ */
+async function getCurrentBranch(repoPath: string): Promise<string> {
+  try {
+    const git = createGit(repoPath)
+    const status = await git.status()
+    return status.current || 'main'
+  } catch {
+    return 'main'
+  }
+}
+
+/**
  * 推送到远端
  */
 export async function pushToRemote(repoPath: string): Promise<GitResult> {
   try {
     const git = createGit(repoPath)
-    await git.push('origin', 'main', { '--set-upstream': null })
+    const branch = await getCurrentBranch(repoPath)
+    await git.push('origin', branch, { '--set-upstream': null })
     return { success: true, message: '推送成功' }
   } catch (error) {
     return { success: false, message: `推送失败: ${(error as Error).message}` }
@@ -142,7 +156,8 @@ export async function pushToRemote(repoPath: string): Promise<GitResult> {
 export async function pullFromRemote(repoPath: string): Promise<GitResult> {
   try {
     const git = createGit(repoPath)
-    await git.pull('origin', 'main')
+    const branch = await getCurrentBranch(repoPath)
+    await git.pull('origin', branch)
     return { success: true, message: '拉取成功' }
   } catch (error) {
     return { success: false, message: `拉取失败: ${(error as Error).message}` }
