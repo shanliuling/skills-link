@@ -15,7 +15,8 @@
       "init": "One-click init: setup + import + link",
       "clone": "Clone skills repo from GitHub and create links",
       "app": "App management (add / list)",
-      "reset": "Reset to initial state (before using skills-link)"
+      "reset": "Reset to initial state (before using skills-link)",
+      "remove": "Remove skills from master directory"
     },
     "options": {
       "skipConfirm": "Skip all confirmations, auto-select latest version",
@@ -356,5 +357,23 @@
     "complete": "Reset to initial state!",
     "restartHint": "You can now run skills-link to reinitialize",
     "deleteFailed": "Delete failed"
+  },
+  "remove": {
+    "title": "Remove Skills",
+    "masterDirNotExist": "Master directory does not exist",
+    "noSkills": "No skills in master directory",
+    "selectPrompt": "Select skills to remove (space to select, enter to confirm)",
+    "selectAtLeastOne": "Please select at least one",
+    "confirmWarning": "About to delete {count} skills:",
+    "confirmPrompt": "Confirm deletion?",
+    "deleted": "Deleted: {name}",
+    "deleteFailed": "Delete failed: {name} - {error}",
+    "result": "Deleted {count} skills",
+    "failResult": "{count} failed to delete",
+    "syncing": "Syncing to Git...",
+    "syncSuccess": "Synced to Git (commit: {hash})",
+    "syncFailed": "Sync failed: {error}",
+    "pushSuccess": "Pushed to remote",
+    "pushFailed": "Push failed: {error}"
   }
 }

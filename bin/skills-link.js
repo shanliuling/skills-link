@@ -14,6 +14,7 @@ import { runInit } from '../dist/commands/init.js'
 import { runClone } from '../dist/commands/clone.js'
 import { runStart } from '../dist/commands/start.js'
 import { runReset } from '../dist/commands/reset.js'
+import { runRemove } from '../dist/commands/remove.js'
 import { initI18n, getLocalePriority, t } from '../dist/core/i18n.js'
 import { readConfig } from '../dist/core/config.js'
 
@@ -121,6 +122,11 @@ program
   .description(t('cli.commands.reset'))
   .option('-d, --dry-run', t('cli.options.dryRun'))
   .action((options) => runReset(options))
+
+program
+  .command('remove')
+  .description(t('cli.commands.remove'))
+  .action(runRemove)
 
 if (process.argv.length === 2) {
   runStart()
