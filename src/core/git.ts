@@ -231,7 +231,10 @@ export async function sync(
     }
 
     const pushResult = await pushToRemote(repoPath)
-    return pushResult
+    return {
+      ...pushResult,
+      hash: commitResult.hash,
+    }
   } catch (error) {
     return { success: false, message: `同步失败: ${(error as Error).message}` }
   }

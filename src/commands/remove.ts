@@ -12,7 +12,7 @@ import { logger } from '../core/logger.js'
 import { ensureConfig } from '../core/config.js'
 import { countSkills } from '../core/scanner.js'
 import { t } from '../core/i18n.js'
-import { sync, pushToRemote, hasRemote } from '../core/git.js'
+import { commitChanges, pushToRemote, hasRemote } from '../core/git.js'
 
 /**
  * 获取 masterDir 中的 skills 列表
@@ -121,7 +121,7 @@ export async function runRemove() {
     logger.newline()
     logger.info(t('remove.syncing'))
 
-    const result = await sync(config.masterDir, `remove: ${selected.join(', ')}`)
+    const result = await commitChanges(config.masterDir, `remove: ${selected.join(', ')}`)
 
     if (result.success && result.hash) {
       logger.success(t('remove.syncSuccess', { hash: result.hash }))

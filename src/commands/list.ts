@@ -72,7 +72,7 @@ export async function runList() {
     // 来源显示：全显示，用 / 分隔
     const sourceLabel = skill.sourceApps.join(' / ')
 
-    logger.log(`  ${logger.successText('✔')} ${displayName.padEnd(padEnd)} from ${sourceLabel}`)
+    logger.log(`  ${logger.successText('✔')} ${displayName.padEnd(padEnd)} ${t('list.fromApp', { app: sourceLabel })}`)
     logger.log(`    ${logger.dim(skill.paths[0])}`)
   }
 
