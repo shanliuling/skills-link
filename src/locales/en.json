@@ -304,7 +304,8 @@
     "togglePrompt": "Toggle app enabled status (space to toggle, enter to confirm)",
     "enableSuccess": "{name} enabled",
     "disableSuccess": "{name} disabled",
-    "linkCreated": "{name} link created"
+    "linkCreated": "{name} link created",
+    "linkRemoved": "{name} link removed"
   },
   "config": {
     "readFailed": "Failed to read config file: {error}",

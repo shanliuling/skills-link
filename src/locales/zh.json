@@ -304,7 +304,8 @@
     "togglePrompt": "切换应用启用状态（空格选中/取消，回车确认）",
     "enableSuccess": "{name} 已启用",
     "disableSuccess": "{name} 已禁用",
-    "linkCreated": "{name} 链接已创建"
+    "linkCreated": "{name} 链接已创建",
+    "linkRemoved": "{name} 链接已移除"
   },
   "config": {
     "readFailed": "读取配置文件失败: {error}",

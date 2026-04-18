@@ -15,7 +15,7 @@ import {
   writeConfig,
   findAppByName,
 } from '../core/config.js'
-import { createJunction } from '../core/symlink.js'
+import { createJunction, removeSymlink } from '../core/symlink.js'
 
 /**
  * 运行 app 命令
@@ -80,16 +80,26 @@ export async function runApp() {
     logger.success(change)
   }
 
-  // 对刚启用的应用创建链接
+  // 处理链接变更
   for (const app of config.apps) {
-    if (app.enabled && enabledNames.has(app.name)) {
-      const parentDir = path.dirname(app.skillsPath)
-      if (!fs.existsSync(parentDir)) continue
-      if (fs.existsSync(app.skillsPath)) continue
+    const nowEnabled = enabledNames.has(app.name)
 
-      const result = createJunction(config.masterDir, app.skillsPath, false)
-      if (result.success) {
-        logger.success(t('app.linkCreated', { name: app.name }))
+    if (nowEnabled) {
+      // 启用：创建链接
+      const parentDir = path.dirname(app.skillsPath)
+      if (fs.existsSync(parentDir) && !fs.existsSync(app.skillsPath)) {
+        const result = createJunction(config.masterDir, app.skillsPath, false)
+        if (result.success) {
+          logger.success(t('app.linkCreated', { name: app.name }))
+        }
+      }
+    } else {
+      // 禁用：删除链接
+      if (fs.existsSync(app.skillsPath)) {
+        const result = removeSymlink(app.skillsPath)
+        if (result.success) {
+          logger.success(t('app.linkRemoved', { name: app.name }))
+        }
       }
     }
   }

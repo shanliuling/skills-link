@@ -497,10 +497,12 @@ async function autoSync(config: GlobalConfig) {
     )
 
     if (!result.success) {
-      if (result.message.includes('没有需要同步')) {
-        return
-      }
       logger.error(t('start.syncFailed', { error: result.message }))
+      return
+    }
+
+    // 没有变更需要提交，静默跳过
+    if (!result.hash) {
       return
     }
 

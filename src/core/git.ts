@@ -113,13 +113,22 @@ export async function commitChanges(
     const git = createGit(repoPath)
     await git.add('.')
     const result = await git.commit(message)
+    // simple-git 没有变更时 commit 返回空
+    if (!result.commit) {
+      return { success: true, message: 'nothing to commit' }
+    }
     return {
       success: true,
-      message: '提交成功',
+      message: 'committed',
       hash: result.commit,
     }
   } catch (error) {
-    return { success: false, message: `提交失败: ${(error as Error).message}` }
+    const errMsg = (error as Error).message || ''
+    // 没有变更时 simple-git 可能抛错，统一处理
+    if (errMsg.includes('nothing to commit') || errMsg.includes('no changes')) {
+      return { success: true, message: 'nothing to commit' }
+    }
+    return { success: false, message: `commit failed: ${errMsg}` }
   }
 }
 
@@ -236,7 +245,7 @@ export async function sync(
       hash: commitResult.hash,
     }
   } catch (error) {
-    return { success: false, message: `同步失败: ${(error as Error).message}` }
+    return { success: false, message: `sync failed: ${(error as Error).message}` }
   }
 }
 
@@ -256,9 +265,9 @@ export async function autoGitSync(
       return commitResult
     }
 
-    // 没有实际变更
+    // 没有实际变更（commitChanges 返回 success 但无 hash）
     if (!commitResult.hash) {
-      return { success: true, message: '没有需要提交的变更' }
+      return { success: true, message: 'nothing to commit' }
     }
 
     if (!autoPush) {
@@ -267,7 +276,7 @@ export async function autoGitSync(
 
     const hasRemoteConfig = await hasRemote(repoPath)
     if (!hasRemoteConfig) {
-      return { ...commitResult, message: '已提交，但未配置远端仓库' }
+      return { ...commitResult, message: 'committed, but no remote configured' }
     }
 
     const pushResult = await pushToRemote(repoPath)
@@ -276,7 +285,7 @@ export async function autoGitSync(
       hash: commitResult.hash,
     }
   } catch (error) {
-    return { success: false, message: `同步失败: ${(error as Error).message}` }
+    return { success: false, message: `sync failed: ${(error as Error).message}` }
   }
 }
 
