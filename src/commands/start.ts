@@ -48,10 +48,8 @@ export async function runStart() {
       initI18n(config.language)
     }
 
-    if (fs.existsSync(config.masterDir) && countSkills(config.masterDir) > 0) {
-      await showStatus(config)
-      return
-    }
+    await showStatus(config)
+    return
   }
 
   await firstTimeSetup()
