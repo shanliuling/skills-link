@@ -14,7 +14,7 @@
       "list": "列出电脑上用户自行下载的 skills",
       "init": "一键初始化：setup + import + link",
       "clone": "从 GitHub 克隆 skills 仓库并创建链接",
-      "app": "应用管理",
+      "app": "管理应用启用状态",
       "reset": "重置到初始状态（未使用 skills-link 前）",
       "remove": "删除 master 目录中的 skills"
     },
@@ -57,7 +57,7 @@
     "gitInitFailed": "Git 初始化失败: {error}",
     "gitRemoteAdded": "Git 远端已添加",
     "gitRemoteFailed": "添加远端失败: {error}",
-    "nextStepHint": "下一步：运行 skills-link import 导入现有 skills",
+    "nextStepHint": "下一步：运行 skills-link 导入现有 skills",
     "languagePrompt": "请选择界面语言",
     "languageZh": "中文",
     "languageEn": "English",
@@ -88,13 +88,13 @@
     "keepAndSkip": "保留现有内容，跳过克隆",
     "cloning": "正在克隆仓库...",
     "cloneFailed": "克隆失败: {error}",
-    "cloneFailedHint": "请检查仓库地址是否正确，或手动克隆后运行 skills-link link",
+    "cloneFailedHint": "请检查仓库地址是否正确，或手动克隆后运行 skills-link",
     "cloneSuccess": "克隆成功！",
     "skillsFound": "发现 {count} 个 skills",
     "scanningLocal": "正在扫描本地 skills...",
     "noSkillsFound": "未发现本地 skills",
     "noSkillsHint": "请先在 AI 应用中下载一些 skills",
-    "noSkillsHint2": "下载后运行 skills-link import 导入",
+    "noSkillsHint2": "下载后运行 skills-link 导入",
     "skillsCount": "共发现 {total} 个 skills（去重后 {unique} 个）",
     "importing": "正在导入...",
     "skillImported": "已导入: {name}",
@@ -122,7 +122,7 @@
     "appNotInstalledStatus": "{name} 未安装",
     "appNeedsFix": "{name} 需要修复",
     "appsNeedFix": "{count} 个应用需要修复",
-    "fixLinkHint": "运行 skills-link link 修复链接",
+    "fixLinkHint": "运行 skills-link 修复链接",
     "setupComplete": "初始化完成！",
     "syncHint": "运行 skills-link sync 同步到 GitHub",
     "configGitHint": "编辑 config.yaml 配置 Git 同步",
@@ -139,7 +139,7 @@
     "imported": "已导入: {name}",
     "skipped": "已跳过: {name}（已存在）",
     "importComplete": "导入完成！共导入 {count} 个 skills",
-    "nextStepHint": "下一步：运行 skills-link link 创建符号链接"
+    "nextStepHint": "下一步：运行 skills-link 创建符号链接"
   },
   "link": {
     "title": "创建 Symlink",
@@ -175,8 +175,8 @@
     "allOk": "所有链接正常！",
     "appsNeedLinks": "{count} 个应用需要创建链接",
     "appsNeedFix": "{count} 个应用需要修复",
-    "fixLinkHint": "运行 skills-link link --app {name} 创建",
-    "fixWrongTargetHint": "运行 skills-link link --app {name} 修复"
+    "fixLinkHint": "运行 skills-link 修复 {name} 链接",
+    "fixWrongTargetHint": "运行 skills-link 修复 {name} 链接"
   },
   "sync": {
     "title": "Git 同步",
@@ -246,14 +246,14 @@
     "orConfigRemote": "或在 config.yaml 中配置 git.remote",
     "remoteRepo": "远程仓库: {url}",
     "targetDir": "目标目录: {path}",
-    "dirNotEmptyHint": "请先删除或移动该目录，或使用 skills-link link 创建链接"
+    "dirNotEmptyHint": "请先删除或移动该目录，或使用 skills-link 创建链接"
   },
   "list": {
     "title": "本地 Skills 列表",
     "scanning": "正在扫描...",
     "noSkillsFound": "未发现本地 skills",
     "found": "发现 {count} 个 skills:",
-    "importHint": "运行 skills-link import 导入这些 skills 到 master 目录",
+    "importHint": "运行 skills-link 将这些 skills 同步到 master 目录",
     "skillHint": "提示：Skills 是包含 SKILL.md 文件的目录",
     "fromApp": "来自 {app}",
     "manualCopyHint": "如果您的 skills 在非默认路径，请手动复制到 master 目录"

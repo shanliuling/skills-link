@@ -14,7 +14,7 @@
       "list": "List user-downloaded skills on this computer",
       "init": "One-click init: setup + import + link",
       "clone": "Clone skills repo from GitHub and create links",
-      "app": "App management (add / list)",
+      "app": "Manage app enabled status",
       "reset": "Reset to initial state (before using skills-link)",
       "remove": "Remove skills from master directory"
     },
@@ -57,7 +57,7 @@
     "gitInitFailed": "Git init failed: {error}",
     "gitRemoteAdded": "Git remote added",
     "gitRemoteFailed": "Failed to add remote: {error}",
-    "nextStepHint": "Next: run skills-link import to import existing skills",
+    "nextStepHint": "Next: run skills-link to import existing skills",
     "languagePrompt": "Select interface language",
     "languageZh": "中文",
     "languageEn": "English",
@@ -88,13 +88,13 @@
     "keepAndSkip": "Keep existing content, skip clone",
     "cloning": "Cloning repository...",
     "cloneFailed": "Clone failed: {error}",
-    "cloneFailedHint": "Check if the repo URL is correct, or manually clone then run skills-link link",
+    "cloneFailedHint": "Check if the repo URL is correct, or manually clone then run skills-link",
     "cloneSuccess": "Clone successful!",
     "skillsFound": "Found {count} skills",
     "scanningLocal": "Scanning local skills...",
     "noSkillsFound": "No local skills found",
     "noSkillsHint": "Please download some skills in AI apps first",
-    "noSkillsHint2": "After downloading, run skills-link import",
+    "noSkillsHint2": "After downloading, run skills-link",
     "skillsCount": "Found {total} skills ({unique} unique after dedup)",
     "importing": "Importing...",
     "skillImported": "Imported: {name}",
@@ -122,7 +122,7 @@
     "appNotInstalledStatus": "{name} not installed",
     "appNeedsFix": "{name} needs fix",
     "appsNeedFix": "{count} apps need fix",
-    "fixLinkHint": "Run skills-link link to fix links",
+    "fixLinkHint": "Run skills-link to fix links",
     "setupComplete": "Setup complete!",
     "syncHint": "Run skills-link sync to sync to GitHub",
     "configGitHint": "Edit config.yaml to configure Git sync",
@@ -139,7 +139,7 @@
     "imported": "Imported: {name}",
     "skipped": "Skipped: {name} (already exists)",
     "importComplete": "Import complete! Imported {count} skills",
-    "nextStepHint": "Next: run skills-link link to create symlinks"
+    "nextStepHint": "Next: run skills-link to create symlinks"
   },
   "link": {
     "title": "Create Symlinks",
@@ -175,8 +175,8 @@
     "allOk": "All links are healthy!",
     "appsNeedLinks": "{count} apps need links",
     "appsNeedFix": "{count} apps need fix",
-    "fixLinkHint": "Run skills-link link --app {name} create",
-    "fixWrongTargetHint": "Run skills-link link --app {name} to fix"
+    "fixLinkHint": "Run skills-link to fix {name} link",
+    "fixWrongTargetHint": "Run skills-link to fix {name} link"
   },
   "sync": {
     "title": "Git Sync",
@@ -246,14 +246,14 @@
     "orConfigRemote": "Or set git.remote in config.yaml",
     "remoteRepo": "Remote: {url}",
     "targetDir": "Target: {path}",
-    "dirNotEmptyHint": "Delete or move the directory first, or run skills-link link to create links"
+    "dirNotEmptyHint": "Delete or move the directory first, or run skills-link to create links"
   },
   "list": {
     "title": "Local Skills List",
     "scanning": "Scanning...",
     "noSkillsFound": "No local skills found",
     "found": "Found {count} skills:",
-    "importHint": "Run skills-link import to import these skills to master directory",
+    "importHint": "Run skills-link to sync these skills to master directory",
     "skillHint": "Hint: Skills are directories containing a SKILL.md file",
     "fromApp": "from {app}",
     "manualCopyHint": "If your skills are in non-default paths, please manually copy to the master directory"
