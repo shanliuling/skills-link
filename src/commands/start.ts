@@ -16,7 +16,7 @@ import {
   readConfig,
   GlobalConfig,
 } from '../core/config.js'
-import { cloneRepo, isGitRepo, initGit, addRemote, autoGitSync } from '../core/git.js'
+import { cloneRepo, isGitRepo, initGit, addRemote, autoGitSync, pullFromRemote } from '../core/git.js'
 import {
   scanSkills,
   copySkill,
@@ -49,7 +49,7 @@ export async function runStart() {
       return
     }
 
-    // 如果配置损坏或主目录消失，不再直接报错 return，而是引导进入 setup
+    // 如果配置损坏或主目录消失，引导进入 setup
     logger.warn(t('start.configDamaged'))
   }
 
@@ -385,6 +385,16 @@ async function createLinks(config: GlobalConfig) {
 
 async function showStatus(config: GlobalConfig) {
   let hasChanges = false
+
+  // 先从远程拉取变更
+  if (config.git?.enabled && config.git?.remote) {
+    logger.info(t('start.pullingFromRemote'))
+    const pullResult = await pullFromRemote(config.masterDir)
+    if (pullResult.success) {
+      logger.success(t('start.pullSuccess'))
+    }
+    // pull 失败不阻塞，继续后续流程
+  }
 
   logger.info(t('start.detectingNew'))
   const newSkillsCount = await autoImportNewSkills(config)

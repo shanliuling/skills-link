@@ -8,7 +8,7 @@
 import fs from 'fs'
 import { logger } from '../core/logger.js'
 import { ensureConfig } from '../core/config.js'
-import { autoGitSync } from '../core/git.js'
+import { autoGitSync, pullFromRemote } from '../core/git.js'
 import { t } from '../core/i18n.js'
 
 export async function runSync(options: { message?: string } = {}) {
@@ -29,6 +29,14 @@ export async function runSync(options: { message?: string } = {}) {
   }
 
   logger.title(t('sync.title'))
+
+  // 先 pull 远程变更，避免覆盖
+  logger.info(t('sync.pulling'))
+  const pullResult = await pullFromRemote(config.masterDir)
+  if (pullResult.success) {
+    logger.success(t('sync.pullSuccess'))
+  }
+  // pull 失败不阻塞，继续同步
 
   const result = await autoGitSync(
     config.masterDir,
