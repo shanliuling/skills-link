@@ -39,19 +39,18 @@ export async function runStart() {
   if (configExists()) {
     const config = readConfig()
 
-    if (!config || !config.masterDir) {
-      logger.error(t('start.configDamaged'))
-      return
-    }
+    // 只有当配置正常且 masterDir 物理存在时才直接显示状态
+    if (config && config.masterDir && fs.existsSync(config.masterDir)) {
+      if (config.language) {
+        initI18n(config.language)
+      }
 
-    if (config.language) {
-      initI18n(config.language)
-    }
-
-    if (fs.existsSync(config.masterDir) && countSkills(config.masterDir) > 0) {
       await showStatus(config)
       return
     }
+
+    // 如果配置损坏或主目录消失，不再直接报错 return，而是引导进入 setup
+    logger.warn(t('start.configDamaged'))
   }
 
   await firstTimeSetup()
@@ -193,7 +192,7 @@ async function firstTimeSetup() {
     apps: finalApps.map((app) => ({
       name: app.name,
       skillsPath: app.skillsPath || '',
-      enabled: app.enabled !== false,
+      enabled: app.exists,
     })),
   }
 
@@ -446,6 +445,10 @@ async function showStatus(config: GlobalConfig) {
 
 async function autoImportNewSkills(config: GlobalConfig) {
   const masterDir = config.masterDir
+
+  if (!fs.existsSync(masterDir)) {
+    return 0
+  }
 
   const skills = await scanSkills({ searchPaths: getDefaultSearchPaths() })
 

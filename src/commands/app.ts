@@ -15,7 +15,7 @@ import {
   writeConfig,
   findAppByName,
 } from '../core/config.js'
-import { createJunction, removeSymlink } from '../core/symlink.js'
+import { createJunction, removeSymlink, isSymlink } from '../core/symlink.js'
 
 /**
  * 运行 app 命令
@@ -94,8 +94,8 @@ export async function runApp() {
         }
       }
     } else {
-      // 禁用：删除链接
-      if (fs.existsSync(app.skillsPath)) {
+      // 禁用：只删除 symlink，普通目录跳过
+      if (isSymlink(app.skillsPath)) {
         const result = removeSymlink(app.skillsPath)
         if (result.success) {
           logger.success(t('app.linkRemoved', { name: app.name }))
