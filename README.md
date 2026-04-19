@@ -1,51 +1,73 @@
+<div align="center">
+
 # Skills-Link
 
+**One skills folder, every AI app.**
+
+Sync your local `skills` across 41+ AI coding agents with a single command.
+
 [![npm version](https://badge.fury.io/js/skills-link.svg)](https://badge.fury.io/js/skills-link)
-[![Build Status](https://github.com/shanliuling/skills-link/workflows/CI/badge.svg)](https://github.com/shanliuling/skills-link/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
-[![Cross Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-green.svg)](https://github.com/shanliuling/skills-link)
 
 English | [中文](./README.zh.md)
 
-A CLI tool to sync local `skills` folders across multiple AI apps.
+</div>
 
-░█▀▀░█░█░▀█▀░█░░░█░░░█▀▀░░░░░█░░░▀█▀░█▀█░█░█
-░▀▀█░█▀▄░░█░░█░░░█░░░▀▀█░▄▄▄░█░░░░█░░█░█░█▀▄
-░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░░░░░▀▀▀░▀▀▀░▀░▀░▀░▀  ___________ _________ __ .__ .__                 
-\__ ___/__.__.______ ____ / _____/ ____ _____ _____/ |_|  |__ |__| ____ ____   
-  |    | < |  |\____ \_/ __ \ \_____ \ / _ \ / \_/ __ \ __\ |  \|  |/ \ / ___\  
-  |    |  \___ ||  |_> > ___/ / ( <_> ) AND AND \ ___/|  | |   和\ |   |  \/ /_/ > 
-  |____|  / ____||   __/ \___ > /_______ /\____/|__|_|  /\___ >__|| |___|  /__|___|  /\___/  
-          \/ |__|        \/ \/​​\/​​\/​​\/​​\//_____/
+---
+
+## How it works
+
+```
+  Claude Code ──┐
+  Cursor ───────┤
+  Windsurf ─────┤
+  Cline ────────┼──▶  ~/AISkills/  ◀──▶  GitHub
+  Gemini CLI ───┤        ▲
+  Trae ─────────┤        │
+  Roo Code ─────┘   Master Directory
+                    (single source of truth)
+```
+
+Every app's `~/.xxx/skills` becomes a symlink pointing to one master directory. Add or edit a skill once — every app sees it instantly.
+
+---
+
 ## Install
 
 ```bash
 npm i -g skills-link
 ```
 
-## Quick Start
+## Quick start
 
 ```bash
 skills-link
 ```
 
-First run guides you through setup automatically.
+That's it. First run walks you through everything — detect apps, import skills, create links.
 
-## Features
+Run it again anytime to sync changes and check health.
 
-- 🔍 Declarative agent registry supporting **41+ AI agents** (add new agents with one line)
-- 🔗 Create symbolic links without admin rights (Windows Junction/macOS/Linux symlink)
-- 📦 One-click import of existing local skills
-- 🔄 Optional Git sync to GitHub
-- 🌐 Chinese and English interfaces
-- 🖥️ Cross-platform support: Windows, macOS, Linux
-- ⚡ Real-time sync - all apps share the same skills directory
-- 💾 Space efficient - single copy for all apps
+---
 
-## Supported AI Agents
+## Commands
 
-41+ agents supported out of the box:
+| Command | Description |
+|---|---|
+| `skills-link` | Interactive startup — import, link, sync |
+| `skills-link list` | List local skills (deduplicated) |
+| `skills-link remove` | Remove skills from master directory |
+| `skills-link app` | Toggle which apps are enabled |
+| `skills-link sync` | Commit & push to GitHub |
+| `skills-link watch` | Auto-sync on file changes |
+| `skills-link health` | Check symlink status |
+| `skills-link reset` | Undo everything, restore initial state |
+
+---
+
+## Supported agents
+
+41+ agents out of the box:
 
 | | | | |
 |---|---|---|---|
@@ -60,88 +82,70 @@ First run guides you through setup automatically.
 | Qoder | Qwen Code | Replit | Roo Code |
 | Trae | Trae CN | Windsurf | Zencoder |
 
-Plus a `universal` fallback for any agent not listed.
+Plus a `universal` fallback for any agent not listed. [Add new agents with one line of code.](src/core/path-detect.ts)
 
-## Commands
+---
 
-| Command        | Description                      |
-| -------------- | -------------------------------- |
-| `skills-link`  | Interactive startup              |
-| `setup`        | Initialize config                |
-| `init`         | One-click: setup + import + link |
-| `import`       | Import local skills              |
-| `link`         | Create/repair links              |
-| `health`       | Check link status                |
-| `sync`         | Sync to GitHub                   |
-| `clone <repo>` | Clone skills repo from GitHub    |
-| `app`          | Manage app configs               |
-
-## Path Convention
-
-All agents follow the `~/.xxx/skills` convention (project-level: `.xxx/skills`):
-
-```
-Detected agent paths:
-
-  Master: ~/AISkills
-
-  Agents:
-    ✓ Claude Code  ~/.claude/skills
-    ✓ Cursor       ~/.cursor/skills
-    ○ Gemini CLI   ~/.gemini/skills
-    ... +38 more
-
-Are these paths correct? (Yes, continue / Edit paths)
-```
-
-## Language
+## Cross-device sync
 
 ```bash
-# CLI parameter
-skills-link --lang zh
+# Machine A — push skills to GitHub
+skills-link sync
 
-# Environment variable
-export SKILLS_LINK_LANG=zh
-
-# Or set in config.yaml
-language: zh
+# Machine B — clone and link
+skills-link  # automatically pulls from remote
 ```
 
-## Config Example
+---
+
+## Config
+
+`~/.skills-link/config.yaml`:
 
 ```yaml
 language: en
-masterDir: C:/Users/You/AISkills
+masterDir: ~/AISkills
 
 git:
   enabled: true
   remote: https://github.com/you/skills.git
+  autoPush: true
+
+watch:
+  enabled: false
+  debounceMs: 3000
 
 apps:
   - name: Claude Code
     skillsPath: ~/.claude/skills
     enabled: true
+  - name: Cursor
+    skillsPath: ~/.cursor/skills
+    enabled: true
 ```
+
+---
+
+## Language
+
+```bash
+skills-link --lang zh     # CLI flag
+export SKILLS_LINK_LANG=zh  # env var
+# or set language: zh in config.yaml
+```
+
+---
 
 ## Requirements
 
-- **Windows**, **macOS**, or **Linux**
 - Node.js 18+
+- Windows / macOS / Linux
 
-### Platform-specific Notes
+**Windows** uses Junction links — no admin rights needed.
+**macOS / Linux** uses native symlinks.
 
-**Windows:**
-- Uses Junction links (no admin rights required)
-- Supports custom installation locations (non-C drives)
-
-**macOS:**
-- Uses native symbolic links
-- No sudo required for user directories
-
-**Linux:**
-- Uses native symbolic links
-- Supports XDG_CONFIG_HOME and XDG_DATA_HOME
+---
 
 ## License
 
-MIT
+[MIT](./LICENSE)

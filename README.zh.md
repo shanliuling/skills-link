@@ -1,11 +1,36 @@
+<div align="center">
+
 # Skills-Link
 
+**一个 skills 文件夹，所有 AI 应用共享。**
+
+一条命令，在 41+ AI 编程工具之间同步本地 skills。
+
 [![npm version](https://badge.fury.io/js/skills-link.svg)](https://badge.fury.io/js/skills-link)
-[![Build Status](https://github.com/shanliuling/skills-link/workflows/CI/badge.svg)](https://github.com/shanliuling/skills-link/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [English](./README.md) | 中文
 
-在多个 AI 应用之间同步本地 `skills` 文件夹的 CLI 工具。
+</div>
+
+---
+
+## 工作原理
+
+```
+  Claude Code ──┐
+  Cursor ───────┤
+  Windsurf ─────┤
+  Cline ────────┼──▶  ~/AISkills/  ◀──▶  GitHub
+  Gemini CLI ───┤        ▲
+  Trae ─────────┤        │
+  Roo Code ─────┘   Master 目录
+                    (唯一数据源)
+```
+
+每个应用的 `~/.xxx/skills` 变成指向同一个 Master 目录的符号链接。新增或编辑一个 skill，所有应用立即可见。
+
+---
 
 ## 安装
 
@@ -19,22 +44,30 @@ npm i -g skills-link
 skills-link
 ```
 
-首次运行自动引导配置。
+就这样。首次运行自动引导 — 检测应用、导入 skills、创建链接。
 
-## 功能
+随时再运行一次即可同步变更和检查状态。
 
-- 🔍 声明式 agent 注册表，支持 **41+ AI agent**（一行代码即可添加新 agent）
-- 🔗 创建符号链接，无需管理员权限（Windows Junction/macOS/Linux symlink）
-- 📦 一键导入本地已有 skills
-- 🔄 可选 Git 同步到 GitHub
-- 🌐 支持中英文界面
-- 🖥️ 跨平台支持：Windows、macOS、Linux
-- ⚡ 实时同步 - 所有应用共享同一个 skills 目录
-- 💾 节省空间 - 所有应用共用一份 skills
+---
 
-## 支持的 AI Agent
+## 命令
 
-开箱即用支持 41+ agent：
+| 命令 | 说明 |
+|---|---|
+| `skills-link` | 交互式启动 — 导入、链接、同步 |
+| `skills-link list` | 列出本地 skills（自动去重） |
+| `skills-link remove` | 从 Master 目录删除 skills |
+| `skills-link app` | 切换启用的应用 |
+| `skills-link sync` | 提交并推送到 GitHub |
+| `skills-link watch` | 文件变更时自动同步 |
+| `skills-link health` | 检查符号链接状态 |
+| `skills-link reset` | 撤销所有操作，恢复初始状态 |
+
+---
+
+## 支持的 Agent
+
+开箱即用 41+ agent：
 
 | | | | |
 |---|---|---|---|
@@ -49,88 +82,70 @@ skills-link
 | Qoder | Qwen Code | Replit | Roo Code |
 | Trae | Trae CN | Windsurf | Zencoder |
 
-另有 `universal` 通用回退，适用于未列出的 agent。
+另有 `universal` 通用回退，适用于未列出的 agent。[一行代码即可添加新 agent。](src/core/path-detect.ts)
 
-## 命令
+---
 
-| 命令            | 说明                              |
-| --------------- | --------------------------------- |
-| `skills-link`   | 交互式启动                        |
-| `setup`         | 初始化配置                        |
-| `init`          | 一键初始化：setup + import + link |
-| `import`        | 导入本地 skills                   |
-| `link`          | 创建/修复链接                     |
-| `health`        | 检查链接状态                      |
-| `sync`          | 同步到 GitHub                     |
-| `clone <repo>`  | 从 GitHub 克隆 skills 仓库        |
-| `app`           | 管理应用配置                      |
-
-## 路径约定
-
-所有 agent 遵循 `~/.xxx/skills` 约定（项目级：`.xxx/skills`）：
-
-```
-检测到以下路径：
-
-  Master: ~/AISkills
-
-  Agent：
-    ✓ Claude Code  ~/.claude/skills
-    ✓ Cursor       ~/.cursor/skills
-    ○ Gemini CLI   ~/.gemini/skills
-    ... +38 more
-
-路径正确吗？(是，继续 / 编辑路径)
-```
-
-## 语言设置
+## 跨设备同步
 
 ```bash
-# 命令行参数
-skills-link --lang zh
+# 机器 A — 推送 skills 到 GitHub
+skills-link sync
 
-# 环境变量
-export SKILLS_LINK_LANG=zh
-
-# 或在 config.yaml 中设置
-language: zh
+# 机器 B — 克隆并链接
+skills-link  # 自动从远程拉取
 ```
 
-## 配置示例
+---
+
+## 配置
+
+`~/.skills-link/config.yaml`：
 
 ```yaml
 language: zh
-masterDir: C:/Users/You/AISkills
+masterDir: ~/AISkills
 
 git:
   enabled: true
   remote: https://github.com/you/skills.git
+  autoPush: true
+
+watch:
+  enabled: false
+  debounceMs: 3000
 
 apps:
   - name: Claude Code
     skillsPath: ~/.claude/skills
     enabled: true
+  - name: Cursor
+    skillsPath: ~/.cursor/skills
+    enabled: true
 ```
+
+---
+
+## 语言设置
+
+```bash
+skills-link --lang en     # 命令行参数
+export SKILLS_LINK_LANG=en  # 环境变量
+# 或在 config.yaml 中设置 language: en
+```
+
+---
 
 ## 系统要求
 
-- **Windows**、**macOS** 或 **Linux**
 - Node.js 18+
+- Windows / macOS / Linux
 
-### 平台特定说明
+**Windows** 使用 Junction 链接 — 无需管理员权限。
+**macOS / Linux** 使用原生符号链接。
 
-**Windows:**
-- 使用 Junction 链接（无需管理员权限）
-- 支持自定义安装位置（非 C 盘）
-
-**macOS:**
-- 使用原生符号链接
-- 用户目录下无需 sudo
-
-**Linux:**
-- 使用原生符号链接
-- 支持 XDG_CONFIG_HOME 和 XDG_DATA_HOME
+---
 
 ## License
 
-MIT
+[MIT](./LICENSE)
