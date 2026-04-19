@@ -9,7 +9,7 @@ import fs from 'fs'
 import chokidar from 'chokidar'
 import { logger } from '../core/logger.js'
 import { ensureConfig } from '../core/config.js'
-import { sync, pushToRemote, hasRemote } from '../core/git.js'
+import { autoGitSync } from '../core/git.js'
 import { t } from '../core/i18n.js'
 
 // 防抖定时器
@@ -99,37 +99,22 @@ export async function runWatch() {
  */
 async function performSync(config: import('../core/config.js').GlobalConfig, gitEnabled: boolean) {
   if (!gitEnabled) {
-    // Git 未启用，只打印日志
     logger.log(t('watch.gitNotEnabled'))
     return
   }
 
-  // 执行同步
-  const result = await sync(config.masterDir)
+  const result = await autoGitSync(
+    config.masterDir,
+    !!config.git?.autoPush,
+  )
 
   if (!result.success) {
     logger.error(result.message)
     return
   }
 
-  if (!result.hash) {
-    // 没有变更需要提交
-    return
-  }
-
-  logger.success(t('watch.syncCompleteGit', { hash: result.hash }))
-
-  // 推送
-  if (config.git?.autoPush) {
-    const hasRemoteConfig = await hasRemote(config.masterDir)
-    if (hasRemoteConfig) {
-      const pushResult = await pushToRemote(config.masterDir)
-      if (pushResult.success) {
-        logger.success(pushResult.message)
-      } else {
-        logger.error(pushResult.message)
-      }
-    }
+  if (result.hash) {
+    logger.success(t('watch.syncCompleteGit', { hash: result.hash }))
   }
 }
 

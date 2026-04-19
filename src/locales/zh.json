@@ -301,16 +301,11 @@
     "masterDirNotExist": "Master 目录不存在，请检查 config.yaml 中的 masterDir 路径",
     "saveFailed": "保存配置失败",
     "totalCount": "共 {count} 个应用",
-    "selectRemove": "选择要删除的应用",
-    "selectEnable": "选择要启用的应用",
-    "selectDisable": "选择要禁用的应用",
-    "appNotFound": "未找到应用: {name}",
-    "removeConfirm": "确认从配置中删除 {name}？",
-    "removeSuccess": "已从 config.yaml 中删除 {name}",
-    "enableHint": "用法: skills-link app enable <name>",
-    "disableHint": "用法: skills-link app disable <name>",
+    "togglePrompt": "切换应用启用状态（空格选中/取消，回车确认）",
     "enableSuccess": "{name} 已启用",
-    "disableSuccess": "{name} 已禁用"
+    "disableSuccess": "{name} 已禁用",
+    "linkCreated": "{name} 链接已创建",
+    "linkRemoved": "{name} 链接已移除"
   },
   "config": {
     "readFailed": "读取配置文件失败: {error}",

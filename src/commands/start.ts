@@ -16,7 +16,7 @@ import {
   readConfig,
   GlobalConfig,
 } from '../core/config.js'
-import { cloneRepo, isGitRepo, initGit, addRemote } from '../core/git.js'
+import { cloneRepo, isGitRepo, initGit, addRemote, autoGitSync } from '../core/git.js'
 import {
   scanSkills,
   copySkill,
@@ -486,31 +486,27 @@ async function autoImportNewSkills(config: GlobalConfig) {
 
 async function autoSync(config: GlobalConfig) {
   try {
-    const { commitChanges, pushToRemote } = await import('../core/git.js')
-
-    const masterDir = config.masterDir
-
     const timestamp = new Date()
       .toISOString()
       .replace('T', ' ')
       .substring(0, 19)
-    const commitResult = await commitChanges(masterDir, `sync: ${timestamp}`)
+    const result = await autoGitSync(
+      config.masterDir,
+      !!config.git?.autoPush,
+      `sync: ${timestamp}`,
+    )
 
-    if (!commitResult.success) {
-      if (commitResult.message.includes('没有需要同步')) {
-        return
-      }
-      logger.error(t('start.syncFailed', { error: commitResult.message }))
+    if (!result.success) {
+      logger.error(t('start.syncFailed', { error: result.message }))
       return
     }
 
-    const pushResult = await pushToRemote(masterDir)
-
-    if (pushResult.success) {
-      logger.success(t('start.syncedToGithub'))
-    } else {
-      logger.error(t('start.syncFailed', { error: pushResult.message }))
+    // 没有变更需要提交，静默跳过
+    if (!result.hash) {
+      return
     }
+
+    logger.success(t('start.syncedToGithub'))
   } catch (error) {
     logger.error(t('start.syncFailed', { error: (error as Error).message }))
   }

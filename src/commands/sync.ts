@@ -8,7 +8,7 @@
 import fs from 'fs'
 import { logger } from '../core/logger.js'
 import { ensureConfig } from '../core/config.js'
-import { sync, pushToRemote, hasRemote } from '../core/git.js'
+import { autoGitSync } from '../core/git.js'
 import { t } from '../core/i18n.js'
 
 export async function runSync(options: { message?: string } = {}) {
@@ -30,7 +30,11 @@ export async function runSync(options: { message?: string } = {}) {
 
   logger.title(t('sync.title'))
 
-  const result = await sync(config.masterDir, message)
+  const result = await autoGitSync(
+    config.masterDir,
+    !!config.git.autoPush,
+    message,
+  )
 
   if (!result.success) {
     logger.error(result.message)
@@ -44,25 +48,10 @@ export async function runSync(options: { message?: string } = {}) {
 
   logger.success(t('sync.commitSuccess', { hash: result.hash }))
 
-  if (!config.git.autoPush) {
-    logger.hint(t('sync.autoPushDisabled'))
-    return
-  }
-
-  const hasRemoteConfig = await hasRemote(config.masterDir)
-  if (!hasRemoteConfig) {
-    logger.warn(t('sync.noRemoteConfig'))
-    logger.hint(t('sync.remoteConfigHint'))
-    return
-  }
-
-  logger.info(t('sync.pushing'))
-  const pushResult = await pushToRemote(config.masterDir)
-
-  if (pushResult.success) {
-    logger.success(t('sync.pushSuccess', { message: pushResult.message }))
+  if (config.git.autoPush) {
+    logger.success(t('sync.pushSuccess', { message: result.message }))
   } else {
-    logger.error(t('sync.pushFailed', { message: pushResult.message }))
+    logger.hint(t('sync.autoPushDisabled'))
   }
 }
 

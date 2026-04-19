@@ -113,13 +113,22 @@ export async function commitChanges(
     const git = createGit(repoPath)
     await git.add('.')
     const result = await git.commit(message)
+    // simple-git 没有变更时 commit 返回空
+    if (!result.commit) {
+      return { success: true, message: 'nothing to commit' }
+    }
     return {
       success: true,
-      message: '提交成功',
+      message: 'committed',
       hash: result.commit,
     }
   } catch (error) {
-    return { success: false, message: `提交失败: ${(error as Error).message}` }
+    const errMsg = (error as Error).message || ''
+    // 没有变更时 simple-git 可能抛错，统一处理
+    if (errMsg.includes('nothing to commit') || errMsg.includes('no changes')) {
+      return { success: true, message: 'nothing to commit' }
+    }
+    return { success: false, message: `commit failed: ${errMsg}` }
   }
 }
 
@@ -236,7 +245,47 @@ export async function sync(
       hash: commitResult.hash,
     }
   } catch (error) {
-    return { success: false, message: `同步失败: ${(error as Error).message}` }
+    return { success: false, message: `sync failed: ${(error as Error).message}` }
+  }
+}
+
+/**
+ * 自动 Git 同步：commit + 根据 autoPush 配置决定是否 push
+ *
+ * 各命令统一调用此方法，避免重复写 commit + push 逻辑
+ */
+export async function autoGitSync(
+  repoPath: string,
+  autoPush: boolean,
+  message?: string,
+): Promise<GitResult> {
+  try {
+    const commitResult = await commitChanges(repoPath, message || 'Auto sync')
+    if (!commitResult.success) {
+      return commitResult
+    }
+
+    // 没有实际变更（commitChanges 返回 success 但无 hash）
+    if (!commitResult.hash) {
+      return { success: true, message: 'nothing to commit' }
+    }
+
+    if (!autoPush) {
+      return commitResult
+    }
+
+    const hasRemoteConfig = await hasRemote(repoPath)
+    if (!hasRemoteConfig) {
+      return { ...commitResult, message: 'committed, but no remote configured' }
+    }
+
+    const pushResult = await pushToRemote(repoPath)
+    return {
+      ...pushResult,
+      hash: commitResult.hash,
+    }
+  } catch (error) {
+    return { success: false, message: `sync failed: ${(error as Error).message}` }
   }
 }
 
@@ -300,6 +349,7 @@ export default {
   getLastCommit,
   rollbackToCommit,
   sync,
+  autoGitSync,
   hasRemote,
   getLastSyncTime,
   getCommitHistory,

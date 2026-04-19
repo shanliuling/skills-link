@@ -1,7 +1,7 @@
 /**
- * app.js - 应用管理命令
+ * app.ts - 应用管理命令
  *
- * 支持 app add/remove/enable/disable/list
+ * 交互式列表，空格切换启用/禁用，回车确认保存
  */
 
 import fs from 'fs'
@@ -12,241 +12,17 @@ import { t } from '../core/i18n.js'
 import {
   ensureConfig,
   addApp,
-  removeApp,
-  updateApp,
   writeConfig,
   findAppByName,
 } from '../core/config.js'
-import { createJunction } from '../core/symlink.js'
+import { createJunction, removeSymlink } from '../core/symlink.js'
 
 /**
  * 运行 app 命令
  */
-export async function runApp(subcommand: string = 'list', options: Record<string, any> = {}) {
-  switch (subcommand) {
-    case 'add':
-      await runAppAdd(options)
-      break
-    case 'remove':
-      await runAppRemove(options)
-      break
-    case 'enable':
-      await runAppToggle(options.name, true)
-      break
-    case 'disable':
-      await runAppToggle(options.name, false)
-      break
-    case 'list':
-      await runAppList()
-      break
-    default:
-      logger.error(t('app.unknownSubcommand', { subcommand }))
-      logger.hint(t('app.subcommandHint'))
-  }
-}
-
-/**
- * 添加新应用
- */
-async function runAppAdd(options: Record<string, any> = {}) {
+export async function runApp() {
   const { exists, config } = ensureConfig()
   if (!exists || !config) return
-
-  if (!fs.existsSync(config.masterDir)) {
-    logger.error(t('app.masterDirNotExist'))
-    return
-  }
-
-  logger.title(t('app.addTitle'))
-  logger.newline()
-
-  const answers = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'name',
-      message: t('app.namePrompt'),
-      validate: (input: string) => {
-        if (!input.trim()) return t('app.nameRequired')
-        if (findAppByName(config, input)) {
-          return t('app.nameExists')
-        }
-        return true
-      },
-    },
-    {
-      type: 'input',
-      name: 'skillsPath',
-      message: t('app.pathPrompt'),
-      validate: (input: string) => {
-        if (!input.trim()) return t('app.pathRequired')
-        return true
-      },
-    },
-    {
-      type: 'confirm',
-      name: 'createLink',
-      message: t('app.createLinkPrompt'),
-      default: true,
-    },
-    {
-      type: 'confirm',
-      name: 'enabled',
-      message: t('app.enabledPrompt'),
-      default: true,
-    },
-  ])
-
-  const newApp = {
-    name: answers.name,
-    skillsPath: answers.skillsPath,
-    enabled: answers.enabled,
-  }
-
-  const newConfig = addApp(config, newApp)
-
-  if (!writeConfig(newConfig)) {
-    logger.error(t('app.saveFailed'))
-    return
-  }
-
-  logger.success(t('app.addSuccess', { name: answers.name }))
-
-  if (answers.createLink) {
-    const parentDir = fs.existsSync(path.dirname(answers.skillsPath))
-    if (!parentDir) {
-      logger.warn(t('app.pathNotExist'))
-      return
-    }
-
-    const result = createJunction(config.masterDir, answers.skillsPath, false)
-    if (result.success) {
-      logger.success(t('app.linkCreated'))
-      if (result.backup) {
-        logger.log(`  ${logger.dim(t('app.backupInfo', { path: result.backup }))}`)
-      }
-    } else {
-      logger.error(result.message)
-    }
-  }
-}
-
-/**
- * 删除应用
- */
-async function runAppRemove(options: { name?: string } = {}) {
-  const { exists, config } = ensureConfig()
-  if (!exists || !config) return
-
-  let appName = options.name
-
-  if (!appName) {
-    if (!config.apps || config.apps.length === 0) {
-      logger.warn(t('app.noApps'))
-      return
-    }
-
-    const { selected } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'selected',
-        message: t('app.selectRemove'),
-        choices: config.apps.map((app) => ({
-          name: `${app.name} (${app.skillsPath})`,
-          value: app.name,
-        })),
-      },
-    ])
-    appName = selected
-  }
-
-  const app = findAppByName(config, appName!)
-  if (!app) {
-    logger.error(t('app.appNotFound', { name: appName! }))
-    return
-  }
-
-  const { confirm } = await inquirer.prompt([
-    {
-      type: 'confirm',
-      name: 'confirm',
-      message: t('app.removeConfirm', { name: app.name }),
-      default: false,
-    },
-  ])
-
-  if (!confirm) {
-    logger.info(t('common.cancelled'))
-    return
-  }
-
-  const newConfig = removeApp(config, app.name)
-
-  if (!writeConfig(newConfig)) {
-    logger.error(t('app.saveFailed'))
-    return
-  }
-
-  logger.success(t('app.removeSuccess', { name: app.name }))
-}
-
-/**
- * 启用/禁用应用
- */
-async function runAppToggle(name: string | undefined, enabled: boolean) {
-  const { exists, config } = ensureConfig()
-  if (!exists || !config) return
-
-  let appName = name
-
-  if (!appName) {
-    if (!config.apps || config.apps.length === 0) {
-      logger.warn(t('app.noApps'))
-      return
-    }
-
-    const { selected } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'selected',
-        message: enabled ? t('app.selectEnable') : t('app.selectDisable'),
-        choices: config.apps.map((app) => ({
-          name: `${app.name} (${app.skillsPath})`,
-          value: app.name,
-        })),
-      },
-    ])
-    appName = selected
-  }
-
-  const app = findAppByName(config, appName!)
-  if (!app) {
-    logger.error(t('app.appNotFound', { name: appName! }))
-    return
-  }
-
-  const newConfig = updateApp(config, app.name, { enabled })
-
-  if (!writeConfig(newConfig)) {
-    logger.error(t('app.saveFailed'))
-    return
-  }
-
-  logger.success(
-    enabled
-      ? t('app.enableSuccess', { name: app.name })
-      : t('app.disableSuccess', { name: app.name }),
-  )
-}
-
-/**
- * 列出所有应用
- */
-async function runAppList() {
-  const { exists, config } = ensureConfig()
-  if (!exists || !config) return
-
-  logger.title(t('app.listTitle'))
-  logger.newline()
 
   if (!config.apps || config.apps.length === 0) {
     logger.warn(t('app.noApps'))
@@ -254,15 +30,79 @@ async function runAppList() {
     return
   }
 
+  logger.title(t('app.listTitle'))
+  logger.newline()
+
+  // 用 checkbox 展示列表，已启用的默认选中
+  const { selected } = await inquirer.prompt([
+    {
+      type: 'checkbox',
+      name: 'selected',
+      message: t('app.togglePrompt'),
+      choices: config.apps.map((app) => ({
+        name: `${app.name.padEnd(15)} ${app.skillsPath}`,
+        value: app.name,
+        checked: app.enabled !== false,
+      })),
+    },
+  ])
+
+  // 计算变更
+  const enabledNames = new Set(selected)
+  const changes: string[] = []
+
   for (const app of config.apps) {
-    const status =
-      app.enabled !== false ? logger.successText(t('app.enabled')) : logger.dim(t('app.disabled'))
-    logger.log(`  ${app.name.padEnd(15)} ${status}`)
-    logger.log(`    ${logger.dim(app.skillsPath)}`)
+    const wasEnabled = app.enabled !== false
+    const nowEnabled = enabledNames.has(app.name)
+
+    if (wasEnabled !== nowEnabled) {
+      app.enabled = nowEnabled
+      changes.push(
+        nowEnabled
+          ? t('app.enableSuccess', { name: app.name })
+          : t('app.disableSuccess', { name: app.name }),
+      )
+    }
   }
 
-  logger.newline()
-  logger.log(t('app.totalCount', { count: config.apps.length }))
+  if (changes.length === 0) {
+    logger.info(t('common.cancelled'))
+    return
+  }
+
+  // 保存
+  if (!writeConfig(config)) {
+    logger.error(t('app.saveFailed'))
+    return
+  }
+
+  for (const change of changes) {
+    logger.success(change)
+  }
+
+  // 处理链接变更
+  for (const app of config.apps) {
+    const nowEnabled = enabledNames.has(app.name)
+
+    if (nowEnabled) {
+      // 启用：创建链接
+      const parentDir = path.dirname(app.skillsPath)
+      if (fs.existsSync(parentDir) && !fs.existsSync(app.skillsPath)) {
+        const result = createJunction(config.masterDir, app.skillsPath, false)
+        if (result.success) {
+          logger.success(t('app.linkCreated', { name: app.name }))
+        }
+      }
+    } else {
+      // 禁用：删除链接
+      if (fs.existsSync(app.skillsPath)) {
+        const result = removeSymlink(app.skillsPath)
+        if (result.success) {
+          logger.success(t('app.linkRemoved', { name: app.name }))
+        }
+      }
+    }
+  }
 }
 
 export default { runApp }

@@ -12,7 +12,7 @@ import { logger } from '../core/logger.js'
 import { ensureConfig } from '../core/config.js'
 import { countSkills } from '../core/scanner.js'
 import { t } from '../core/i18n.js'
-import { commitChanges, pushToRemote, hasRemote } from '../core/git.js'
+import { autoGitSync } from '../core/git.js'
 
 /**
  * 获取 masterDir 中的 skills 列表
@@ -121,21 +121,16 @@ export async function runRemove() {
     logger.newline()
     logger.info(t('remove.syncing'))
 
-    const result = await commitChanges(config.masterDir, `remove: ${selected.join(', ')}`)
+    const result = await autoGitSync(
+      config.masterDir,
+      !!config.git.autoPush,
+      `remove: ${selected.join(', ')}`,
+    )
 
     if (result.success && result.hash) {
       logger.success(t('remove.syncSuccess', { hash: result.hash }))
-
       if (config.git.autoPush) {
-        const hasRemoteConfig = await hasRemote(config.masterDir)
-        if (hasRemoteConfig) {
-          const pushResult = await pushToRemote(config.masterDir)
-          if (pushResult.success) {
-            logger.success(t('remove.pushSuccess'))
-          } else {
-            logger.error(t('remove.pushFailed', { error: pushResult.message }))
-          }
-        }
+        logger.success(t('remove.pushSuccess'))
       }
     } else if (!result.success) {
       logger.error(t('remove.syncFailed', { error: result.message }))
