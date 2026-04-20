@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/logo.png" alt="Skills-Link Logo" width="200" />
+
 # Skills-Link
 
 **One skills folder, every AI app.**
