@@ -32,11 +32,11 @@ import {
 } from '../core/path-detect.js'
 import { getSkillModTime, groupAndDedupSkills } from '../core/utils.js'
 
-export async function runStart() {
+export async function runStart(forceSetup: boolean = false) {
   logger.title(t('start.title'))
   logger.newline()
 
-  if (configExists()) {
+  if (!forceSetup && configExists()) {
     const config = readConfig()
 
     // 只有当配置正常且 masterDir 物理存在时才直接显示状态

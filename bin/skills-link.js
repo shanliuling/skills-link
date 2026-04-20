@@ -88,6 +88,11 @@ program
   .option('-d, --dry-run', t('cli.options.dryRun'))
   .action((options) => runReset(options))
 
+program
+  .command('setup')
+  .description(t('cli.commands.setup'))
+  .action(() => runStart(true))
+
 if (process.argv.length === 2) {
   runStart()
 } else {

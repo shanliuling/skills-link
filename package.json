@@ -1,6 +1,6 @@
 {
   "name": "skills-link",
-  "version": "1.2.0",
+  "version": "1.2.3",
   "type": "module",
   "description": "CLI tool for syncing local skills folders across multiple AI apps",
   "bin": {
