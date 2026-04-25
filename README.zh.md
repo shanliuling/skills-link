@@ -8,7 +8,7 @@
 
 一条命令，在 41+ AI 编程工具之间同步本地 skills。
 
-也支持同步 rules/指令：`rules-link`
+支持 rules 同步：`rules-link`
 
 [![npm version](https://badge.fury.io/js/skills-link.svg)](https://badge.fury.io/js/skills-link)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -59,7 +59,7 @@ skills-link
 | 命令 | 说明 |
 |------|------|
 | `skills-link` | 主命令 — 同步 skills |
-| `rules-link` | 附赠 — 同步 rules |
+| `rules-link` | 同步 rules |
 
 ---
 

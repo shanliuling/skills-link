@@ -8,7 +8,7 @@
 
 Sync your local `skills` across 41+ AI coding agents with a single command.
 
-Also syncs rules/instructions: `rules-link`
+Supports rules sync: `rules-link`
 
 [![npm version](https://badge.fury.io/js/skills-link.svg)](https://badge.fury.io/js/skills-link)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -60,7 +60,7 @@ Run it again anytime to sync changes and check health.
 | Command | Description |
 |---------|-------------|
 | `skills-link` | Main command — sync skills |
-| `rules-link` | Bonus — sync rules |
+| `rules-link` | Sync rules |
 
 ---
 
