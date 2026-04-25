@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:cursor.com)",
+      "WebFetch(domain:docs.codeium.com)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:codeium.com)",
+      "WebFetch(domain:windsurf.com)",
+      "WebFetch(domain:www.cursor.com)",
+      "WebFetch(domain:docs.windsurf.com)",
+      "WebFetch(domain:docs.claude.com)",
+      "WebFetch(domain:docs.continue.dev)",
+      "WebFetch(domain:platform.openai.com)",
+      "Bash(git *)"
+    ]
+  }
+}

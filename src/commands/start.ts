@@ -423,8 +423,6 @@ async function createLinks(config: GlobalConfig) {
 }
 
 async function showStatus(config: GlobalConfig) {
-  let hasChanges = false
-
   // 先从远程拉取变更
   if (config.git?.enabled && config.git?.remote) {
     logger.info(t('start.pullingFromRemote'))
@@ -436,12 +434,12 @@ async function showStatus(config: GlobalConfig) {
   }
 
   logger.info(t('start.detectingNew'))
-  const newSkillsCount = await autoImportNewSkills(config)
-  if (newSkillsCount > 0) {
-    hasChanges = true
-  }
+  await autoImportNewSkills(config)
 
-  if (hasChanges && config.git?.enabled && config.git?.remote) {
+  // Sync to remote whenever git is configured, not only when new skills are imported.
+  // This ensures uncommitted changes (e.g., skills added locally but not yet pushed)
+  // are always pushed on every run.
+  if (config.git?.enabled && config.git?.remote) {
     logger.newline()
     logger.info(t('start.syncingToGithub'))
     await autoSync(config)

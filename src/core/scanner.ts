@@ -83,6 +83,7 @@ const IGNORE_PATH_PATTERNS = [
   '/.claude-plugin/', // Claude 插件配置
   '/local-agent-mode-sessions/', // Claude 本地代理会话
   '/skills-plugin/', // 技能插件缓存
+  '/.system/', // OpenAI Codex 系统内置技能容器
 ]
 
 /**
