@@ -1,6 +1,5 @@
-<div align="center">
-
-<img src="assets/logo.png" alt="Skills-Link Logo" width="200" />
+<img width="1024" height="571" alt="image" src="https://github.com/user-attachments/assets/91154965-fa83-4c65-a9d0-991a6aa06c86" /><div align="center">
+<!-- <img src="assets/logo.png" alt="Skills-Link Logo" width="200" /> -->
 
 # Skills-Link
 
