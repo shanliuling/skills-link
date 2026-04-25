@@ -407,6 +407,7 @@
     "nothingToCollect": "没有需要收集的文件",
     "pushing": "正在推送...",
     "pushSuccess": "推送成功！",
+    "autoPushDisabled": "自动推送已禁用，如需推送请在配置中启用",
     "restoring": "正在恢复本地 rules...",
     "restored": "已恢复 {count} 个文件",
     "nothingToRestore": "没有需要恢复的文件",

@@ -175,13 +175,14 @@ export async function runRules() {
     if (count > 0) {
       logger.success(t('rules.collected', { count }))
 
-      // 推送
-      if (hasRemoteConfigured || config.git?.enabled) {
+      // 推送（仅当 autoPush 启用时）
+      const shouldPush = config.git?.autoPush && (hasRemoteConfigured || config.git?.enabled)
+      if (shouldPush) {
         logger.newline()
         logger.info(t('rules.pushing'))
         const result = await autoGitSync(
           masterDir,
-          !!config.git?.autoPush,
+          true,  // 用户手动选择 sync，强制推送
           `rules sync: ${new Date().toISOString().split('T')[0]}`,
         )
         if (result.success) {
@@ -189,6 +190,8 @@ export async function runRules() {
         } else {
           logger.error(result.message)
         }
+      } else {
+        logger.hint(t('rules.autoPushDisabled'))
       }
     } else {
       logger.info(t('rules.nothingToCollect'))

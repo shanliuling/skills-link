@@ -407,6 +407,7 @@
     "nothingToCollect": "Nothing to collect",
     "pushing": "Pushing...",
     "pushSuccess": "Push successful!",
+    "autoPushDisabled": "Auto push disabled. Enable it in config to push.",
     "restoring": "Restoring local rules...",
     "restored": "Restored {count} files",
     "nothingToRestore": "Nothing to restore",

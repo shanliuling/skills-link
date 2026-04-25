@@ -37,4 +37,10 @@ function initLanguage() {
 
 initLanguage()
 
-runRules()
+runRules().catch((error) => {
+  console.error('Error:', error.message || error)
+  if (error.stack) {
+    console.error(error.stack)
+  }
+  process.exit(1)
+})
