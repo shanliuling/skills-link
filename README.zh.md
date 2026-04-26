@@ -138,3 +138,11 @@ skills-link --lang zh     # 命令行参数
 ## 许可证
 
 [MIT](./LICENSE)
+
+---
+
+## ⭐ Star History
+
+如果这个工具对你有帮助，欢迎给个 star，让更多人知道！
+
+[![Star History Chart](https://api.star-history.com/svg?repos=shanliuling/skills-link&type=Date)](https://star-history.com/#shanliuling/skills-link&type=Date)

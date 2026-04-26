@@ -141,3 +141,11 @@ skills-link --lang zh     # CLI flag
 ## License
 
 [MIT](./LICENSE)
+
+---
+
+## ⭐ Star History
+
+If skills-link helped you, give it a star — it helps others find it too!
+
+[![Star History Chart](https://api.star-history.com/svg?repos=shanliuling/skills-link&type=Date)](https://star-history.com/#shanliuling/skills-link&type=Date)
