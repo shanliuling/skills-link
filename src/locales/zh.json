@@ -429,9 +429,6 @@
     "skillExists": "Skill {name} 已存在",
     "overwritePrompt": "是否覆盖？",
     "installed": "已安装: {name}",
-    "linkPrompt": "是否立即创建链接？",
-    "linking": "正在创建链接...",
-    "linksCreated": "已创建 {count} 个链接",
     "done": "安装完成！",
     "skillNotFound": "未找到 skill: {name}",
     "availableSkills": "可用的 skills："

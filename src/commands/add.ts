@@ -12,6 +12,7 @@
 
 import fs from 'fs'
 import path from 'path'
+import os from 'os'
 import { simpleGit } from 'simple-git'
 import inquirer from 'inquirer'
 import { logger } from '../core/logger.js'
@@ -56,10 +57,7 @@ export async function runAdd(args: string[], options: AddOptions = {}) {
   logger.info(t('add.cloning', { url: repoUrl }))
 
   // 创建临时目录
-  const tempDir = path.join(masterDir, '.temp-add')
-  if (fs.existsSync(tempDir)) {
-    fs.rmSync(tempDir, { recursive: true, force: true })
-  }
+  const tempDir = path.join(os.tmpdir(), `skills-link-add-${process.pid}-${Date.now()}`)
 
   try {
     // 克隆仓库
@@ -141,21 +139,18 @@ export async function runAdd(args: string[], options: AddOptions = {}) {
       }
     }
 
-    // 复制到 masterDir
+    // 复制到 masterDir（使用 copy 避免跨设备问题）
     const destDir = path.join(masterDir, skillName)
     if (fs.existsSync(destDir)) {
       fs.rmSync(destDir, { recursive: true, force: true })
     }
-    fs.renameSync(targetDir, destDir)
+    copyDirRecursive(targetDir, destDir)
 
     logger.success(t('add.installed', { name: skillName }))
 
-    // 清理临时目录
-    fs.rmSync(tempDir, { recursive: true, force: true })
-
     logger.success(t('add.done'))
-  } catch (error) {
-    logger.error(t('add.cloneFailed', { error: (error as Error).message }))
+  } finally {
+    // 确保清理临时目录
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { recursive: true, force: true })
     }
@@ -166,27 +161,54 @@ export async function runAdd(args: string[], options: AddOptions = {}) {
  * 解析输入为 Git URL
  */
 function parseRepoUrl(input: string): string | null {
-  // 已经是完整 URL
-  if (input.startsWith('http://') || input.startsWith('https://') || input.startsWith('git@')) {
-    if (input.includes('github.com')) {
-      // 转换为 git URL
-      if (input.startsWith('https://github.com/')) {
-        return input.replace('https://github.com/', 'https://github.com/')
+  // HTTPS/HTTP URL
+  if (input.startsWith('https://') || input.startsWith('http://')) {
+    try {
+      const url = new URL(input)
+      if (url.hostname === 'github.com') {
+        let normalized = input.replace(/\.git$/, '').replace(/\/+$/, '')
+        return normalized
       }
-      if (input.startsWith('http://github.com/')) {
-        return input.replace('http://github.com/', 'https://github.com/')
-      }
-      return input
+    } catch {
+      return null
+    }
+    return null
+  }
+
+  // SSH URL (git@github.com:user/repo)
+  if (input.startsWith('git@github.com:')) {
+    const match = input.match(/^git@github\.com:(.+)$/)
+    if (match) {
+      return `https://github.com/${match[1].replace(/\.git$/, '')}`
     }
     return null
   }
 
   // user/repo 格式
-  if (input.includes('/')) {
+  if (/^[\w.-]+\/[\w.-]+$/.test(input)) {
     return `https://github.com/${input}`
   }
 
   return null
+}
+
+/**
+ * 递归复制目录
+ */
+function copyDirRecursive(src: string, dest: string): void {
+  fs.mkdirSync(dest, { recursive: true })
+  const entries = fs.readdirSync(src, { withFileTypes: true })
+
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name)
+    const destPath = path.join(dest, entry.name)
+
+    if (entry.isDirectory()) {
+      copyDirRecursive(srcPath, destPath)
+    } else {
+      fs.copyFileSync(srcPath, destPath)
+    }
+  }
 }
 
 /**
