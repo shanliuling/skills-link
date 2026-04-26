@@ -61,8 +61,22 @@ Run it again anytime to sync changes and check health.
 
 | Command | Description |
 |---------|-------------|
-| `skills-link` | Main command — sync skills |
+| `skills-link` | Main command — sync skills to all apps |
+| `skills-link add <repo>` | Install skill from GitHub |
+| `skills-link list` | List local skills |
+| `skills-link sync` | Push changes to GitHub |
+| `skills-link app` | Manage enabled apps |
 | `rules-link` | Sync rules |
+
+### Install skill from GitHub
+
+```bash
+# Install all skills from a repo (choose one)
+skills-link add vercel-labs/agent-skills
+
+# Install specific skill
+skills-link add vercel-labs/agent-skills -s web-design-guidelines
+```
 
 ---
 

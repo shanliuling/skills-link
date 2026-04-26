@@ -16,7 +16,8 @@
       "clone": "Clone skills repo from GitHub and create links",
       "app": "Manage app enabled status",
       "reset": "Reset to initial state (before using skills-link)",
-      "remove": "Remove skills from master directory"
+      "remove": "Remove skills from master directory",
+      "add": "Install skill from GitHub"
     },
     "options": {
       "skipConfirm": "Skip all confirmations, auto-select latest version",
@@ -413,5 +414,23 @@
     "nothingToRestore": "Nothing to restore",
     "statusTitle": "Rules Status",
     "done": "Done!"
+  },
+  "add": {
+    "noConfig": "Config file not found",
+    "runSetupFirst": "Please run skills-link setup first",
+    "masterDirNotExist": "Master directory does not exist",
+    "usage": "Usage: skills-link add <repo>",
+    "usageExample": "Example: skills-link add vercel-labs/agent-skills",
+    "invalidUrl": "Invalid GitHub address",
+    "cloning": "Cloning {url}...",
+    "cloneFailed": "Clone failed: {error}",
+    "noSkillFound": "No SKILL.md file found",
+    "selectSkill": "Select skill to install:",
+    "skillExists": "Skill {name} already exists",
+    "overwritePrompt": "Overwrite?",
+    "installed": "Installed: {name}",
+    "done": "Install complete!",
+    "skillNotFound": "Skill not found: {name}",
+    "availableSkills": "Available skills:"
   }
 }
