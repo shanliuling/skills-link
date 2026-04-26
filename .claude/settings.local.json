@@ -13,7 +13,13 @@
       "WebFetch(domain:docs.claude.com)",
       "WebFetch(domain:docs.continue.dev)",
       "WebFetch(domain:platform.openai.com)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "WebFetch(domain:skills.sh)",
+      "Bash(npm run *)",
+      "Bash(node dist/commands/add.js)",
+      "Bash(node bin/skills-link.js add)",
+      "Bash(node bin/skills-link.js add --help)",
+      "Bash(npm version *)"
     ]
   }
 }

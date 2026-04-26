@@ -9,6 +9,7 @@ import { runList } from '../dist/commands/list.js'
 import { runStart } from '../dist/commands/start.js'
 import { runReset } from '../dist/commands/reset.js'
 import { runRemove } from '../dist/commands/remove.js'
+import { runAdd } from '../dist/commands/add.js'
 import { initI18n, getLocalePriority, t } from '../dist/core/i18n.js'
 import { readConfig } from '../dist/core/config.js'
 
@@ -92,6 +93,13 @@ program
   .command('setup')
   .description(t('cli.commands.setup'))
   .action(() => runStart(true))
+
+program
+  .command('add')
+  .description(t('cli.commands.add'))
+  .argument('<repo>', 'GitHub repo (user/repo or URL)')
+  .option('-s, --skill <name>', 'Specific skill to install')
+  .action((repo, options) => runAdd([repo], options))
 
 if (process.argv.length === 2) {
   runStart()

@@ -58,8 +58,22 @@ skills-link
 
 | 命令 | 说明 |
 |------|------|
-| `skills-link` | 主命令 — 同步 skills |
+| `skills-link` | 主命令 — 同步 skills 到所有应用 |
+| `skills-link add <repo>` | 从 GitHub 安装 skill |
+| `skills-link list` | 列出本地 skills |
+| `skills-link sync` | 推送变更到 GitHub |
+| `skills-link app` | 管理启用的应用 |
 | `rules-link` | 同步 rules |
+
+### 从 GitHub 安装 skill
+
+```bash
+# 从仓库安装（选择其中一个）
+skills-link add vercel-labs/agent-skills
+
+# 安装指定的 skill
+skills-link add vercel-labs/agent-skills -s web-design-guidelines
+```
 
 ---
 
