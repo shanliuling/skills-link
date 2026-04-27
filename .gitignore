@@ -21,3 +21,5 @@ coverage/
 *.swp
 *.swo
 *~
+.claude/
+.claude/
